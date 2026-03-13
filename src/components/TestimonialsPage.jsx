@@ -1,23 +1,19 @@
-import CMS_DATA from "../data";
+import useCMS from "../data";
 import Icons from "../Icons";
 
 export default function TestimonialsPage() {
+  const { testimonials } = useCMS();
+
   return (
     <div className="page">
       <div className="container section">
         <div className="section-label animate-fade-up">Testimonials</div>
-        <h2 className="section-title animate-fade-up animate-delay-1">
-          What our clients say
-        </h2>
-        <p
-          className="section-subtitle animate-fade-up animate-delay-2"
-          style={{ marginBottom: "2.5rem" }}
-        >
-          Real feedback from homeowners and businesses who trusted us with their
-          vision.
+        <h2 className="section-title animate-fade-up animate-delay-1">What our clients say</h2>
+        <p className="section-subtitle animate-fade-up animate-delay-2" style={{ marginBottom: "2.5rem" }}>
+          Real feedback from homeowners and businesses who trusted us with their vision.
         </p>
         <div className="testimonials-grid">
-          {CMS_DATA.testimonials.map((t, i) => (
+          {testimonials.map((t, i) => (
             <div
               key={t._id}
               className="testimonial-card animate-fade-up"

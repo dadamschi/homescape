@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { CMSProvider } from "./data";
 import useStore from "./store";
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
@@ -40,10 +41,10 @@ function Router() {
 
 export default function App() {
     return (
-        <>
+        <CMSProvider>
             <Nav />
             <Router />
             <Footer />
-        </>
+        </CMSProvider>
     );
 }

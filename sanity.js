@@ -25,7 +25,8 @@ export const queries = {
     title,
     category,
     description,
-    "image": image.asset->url,
+    "image": select(defined(image.asset) => image.asset->url, imageUrl),
+    "images": images[].asset->url,
     year,
     location
   }`,
@@ -46,12 +47,21 @@ export const queries = {
     hours
   }`,
 
+  aboutContent: `*[_type == "aboutContent"][0] {
+    headline,
+    story,
+    "image": select(defined(image.asset) => image.asset->url, imageUrl),
+    values[] { title, description },
+    stats[] { value, label }
+  }`,
+
   siteSettings: `*[_type == "siteSettings"][0] {
     companyName,
     tagline,
     phone,
     email,
-    social
+    social,
+    servingSince
   }`,
 };
 
@@ -76,4 +86,8 @@ export async function fetchLocations() {
 
 export async function fetchSiteSettings() {
   return sanityClient.fetch(queries.siteSettings);
+}
+
+export async function fetchAboutContent() {
+  return sanityClient.fetch(queries.aboutContent);
 }

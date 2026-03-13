@@ -1,6 +1,5 @@
 import { useState } from "react";
 import useStore, { navigate } from "../store";
-import CMS_DATA from "../data";
 import Icons from "../Icons";
 
 const NAV_LINKS = [
@@ -23,7 +22,7 @@ export default function Nav() {
     <>
       <nav className="nav">
         <div className="nav-logo" onClick={() => handleNav("home")}>
-          Homescape<span>.</span>
+          Homescape Construction<span>.</span>
         </div>
         <ul className="nav-links">
           {NAV_LINKS.map((l) => (
