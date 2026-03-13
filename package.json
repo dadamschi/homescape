@@ -1,0 +1,25 @@
+{
+  "name": "homescape-construction",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lightweight marketing SPA for Homescape Construction",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zustand": "^5.0.11",
+    "@sanity/client": "^6.28.0",
+    "@sanity/image-url": "^2.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "vite": "^7.3.1"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}
