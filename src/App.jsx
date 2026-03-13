@@ -3,7 +3,7 @@ import useStore from "./store";
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import ProjectsPage from "./components/ProjectsPage";
-import AboutPage from "./components/Aboutpage";
+import AboutPage from "./components/AboutPage";
 import TestimonialsPage from "./components/TestimonialsPage";
 import ContactPage from "./components/ContactPage";
 import Footer from "./components/Footer";
