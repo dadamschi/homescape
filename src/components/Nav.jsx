@@ -22,7 +22,7 @@ export default function Nav() {
     <>
       <nav className="nav">
         <div className="nav-logo" onClick={() => handleNav("home")}>
-          Homescape Construction<span>.</span>
+          Homescape Construction Inc<span>.</span>
         </div>
         <ul className="nav-links">
           {NAV_LINKS.map((l) => (

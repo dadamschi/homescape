@@ -1,7 +1,12 @@
 import { navigate } from "../store";
+import useCMS from "../data";
 import Icons from "../Icons";
 
 export default function Hero() {
+  const { hero } = useCMS();
+
+  if (!hero) return null;
+
   return (
     <section className="hero">
       <div className="hero-bg" />
@@ -10,12 +15,10 @@ export default function Hero() {
           Residential &amp; Commercial
         </div>
         <h1 className="animate-fade-up animate-delay-1">
-          Building spaces that inspire
+          {hero.headline}
         </h1>
         <p className="animate-fade-up animate-delay-2">
-          From concept to completion, Homescape Construction delivers exceptional
-          craftsmanship and timeless design for homes and businesses throughout
-          the Pacific Northwest.
+          {hero.story}
         </p>
         <div className="hero-buttons animate-fade-up animate-delay-3">
           <button

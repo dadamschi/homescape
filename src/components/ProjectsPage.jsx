@@ -1,6 +1,36 @@
 import { useState } from "react";
 import useCMS from "../data";
 
+function ImageCarousel({ images }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const validImages = images.filter(Boolean);
+
+  if (validImages.length === 0) return null;
+  if (validImages.length === 1) {
+    return <img src={validImages[0]} alt="" loading="lazy" />;
+  }
+
+  const prev = () => setCurrentIndex((i) => (i === 0 ? validImages.length - 1 : i - 1));
+  const next = () => setCurrentIndex((i) => (i === validImages.length - 1 ? 0 : i + 1));
+
+  return (
+    <div className="carousel">
+      <img src={validImages[currentIndex]} alt="" loading="lazy" />
+      <button className="carousel-btn carousel-btn-prev" onClick={prev}>‹</button>
+      <button className="carousel-btn carousel-btn-next" onClick={next}>›</button>
+      <div className="carousel-dots">
+        {validImages.map((_, i) => (
+          <span
+            key={i}
+            className={`carousel-dot ${i === currentIndex ? "active" : ""}`}
+            onClick={() => setCurrentIndex(i)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProjectsPage() {
   const { projects } = useCMS();
   const [filter, setFilter] = useState("All");
@@ -35,26 +65,33 @@ export default function ProjectsPage() {
               style={{ animationDelay: `${i * 0.1}s` }}
             >
               <div style={{ overflow: "hidden" }}>
-                {project.image ? (
-                  <img src={project.image} alt={project.title} loading="lazy" />
-                ) : (
-                  <div style={{
-                    width: "100%",
-                    height: "240px",
-                    background: "var(--color-bg-alt)",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.5rem",
-                    color: "var(--color-border)",
-                  }}>
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    <span style={{ fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>No image yet</span>
-                  </div>
-                )}
+                {(() => {
+                  const allImages = [project.image, ...(project.images || [])].filter(Boolean);
+                  if (allImages.length > 1) {
+                    return <ImageCarousel images={allImages} />;
+                  } else if (allImages.length === 1) {
+                    return <img src={allImages[0]} alt={project.title} loading="lazy" />;
+                  } else {
+                    return (
+                      <div style={{
+                        width: "100%",
+                        height: "240px",
+                        background: "var(--color-bg-alt)",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                        color: "var(--color-border)",
+                      }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span style={{ fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>No image yet</span>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
               <div className="project-card-body">
                 <div className="project-card-category">{project.category}</div>

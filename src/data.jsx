@@ -5,6 +5,7 @@ import {
   fetchLocations,
   fetchSiteSettings,
   fetchAboutContent,
+  fetchHero,
 } from "../sanity";
 
 // --- CMS DATA CONTEXT --------------------------------------------------------
@@ -12,7 +13,7 @@ const CMSContext = createContext(null);
 
 const FALLBACK = {
   siteSettings: {
-    companyName: "Homescape Construction",
+    companyName: "Homescape Construction Inc",
     tagline: "Building dreams from the ground up",
     phone: "",
     email: "",
@@ -20,6 +21,7 @@ const FALLBACK = {
     servingSince: ""
   },
   aboutContent: null,
+  hero: null,
   projects: [],
   testimonials: [],
   locations: [],
@@ -36,16 +38,18 @@ export function CMSProvider({ children }) {
       fetchTestimonials(),
       fetchLocations(),
       fetchAboutContent(),
-    ]).then(([siteSettings, projects, testimonials, locations, aboutContent]) => {
+      fetchHero(),
+    ]).then(([siteSettings, projects, testimonials, locations, aboutContent, hero]) => {
       setData({
         siteSettings: siteSettings.value || FALLBACK.siteSettings,
         projects: projects.value || [],
         testimonials: testimonials.value || [],
         locations: locations.value || [],
         aboutContent: aboutContent.value || null,
+        hero: hero.value || null,
       });
-      if ([siteSettings, projects, testimonials, locations, aboutContent].some(r => r.status === "rejected")) {
-        console.error("Some CMS fetches failed:", { siteSettings, projects, testimonials, locations, aboutContent });
+      if ([siteSettings, projects, testimonials, locations, aboutContent, hero].some(r => r.status === "rejected")) {
+        console.error("Some CMS fetches failed:", { siteSettings, projects, testimonials, locations, aboutContent, hero });
       }
     }).finally(() => setLoading(false));
   }, []);

@@ -83,7 +83,9 @@ export default function ContactPage() {
             {locations.map((loc) => (
               <div key={loc._id} className="location-card">
                 <div className="location-name">{loc.name}</div>
+                { loc.address &&
                 <div className="location-detail">{Icons.mapPin} {loc.address}</div>
+                }
                 <div className="location-detail">{Icons.phone} {loc.phone}</div>
                 <div className="location-detail"><span style={{ fontSize: "0.8rem" }}>🕒</span> {loc.hours}</div>
               </div>

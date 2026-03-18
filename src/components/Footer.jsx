@@ -11,7 +11,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <div className="footer-brand">Homescape Construction<span>.</span></div>
+            <div className="footer-brand">Homescape Construction Inc<span>.</span></div>
             <p className="footer-tagline">{tagline}. {servingSince}.</p>
             <div className="footer-social">
               {social.facebook && <a href={social.facebook} target="_blank" rel="noopener noreferrer">{Icons.facebook}</a>}
@@ -43,7 +43,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} Homescape Construction. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Homescape Construction Inc. All rights reserved.</span>
           <span>Crafted with care in the Pacific Northwest</span>
         </div>
       </div>

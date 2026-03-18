@@ -63,6 +63,11 @@ export const queries = {
     social,
     servingSince
   }`,
+
+  heroContent: `*[_type == "heroContent"][0] {
+    headline,
+    story
+  }`,
 };
 
 // --- DATA FETCHERS -----------------------------------------------------------
@@ -90,4 +95,8 @@ export async function fetchSiteSettings() {
 
 export async function fetchAboutContent() {
   return sanityClient.fetch(queries.aboutContent);
+}
+
+export async function fetchHero() {
+  return sanityClient.fetch(queries.heroContent);
 }

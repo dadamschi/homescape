@@ -351,6 +351,58 @@ body, #root {
   color: var(--color-text-secondary);
 }
 
+/* --- CAROUSEL --- */
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+.carousel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+}
+.carousel:hover .carousel-btn { opacity: 1; }
+.carousel-btn:hover { background: #fff; }
+.carousel-btn-prev { left: 8px; }
+.carousel-btn-next { right: 8px; }
+.carousel-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.carousel-dot.active,
+.carousel-dot:hover { background: #fff; }
+
 /* --- TESTIMONIALS --- */
 .testimonials-grid {
   display: grid;

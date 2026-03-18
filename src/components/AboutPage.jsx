@@ -2,7 +2,7 @@ import useCMS from "../data";
 
 const FALLBACK = {
   headline: "Craftsmanship meets innovation",
-  story: "Founded in 2012, Homescape Construction began with a simple belief: that every structure we build should enhance the lives of those who use it.",
+  story: "Founded in 2012, Homescape Construction Inc. began with a simple belief: that every structure we build should enhance the lives of those who use it.",
   image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
   values: [
     { title: "Quality First", description: "We never cut corners. Every joint, every finish, every detail meets our exacting standards." },
