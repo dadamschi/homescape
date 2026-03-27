@@ -25,8 +25,19 @@ export const queries = {
     title,
     category,
     description,
-    "image": select(defined(image.asset) => image.asset->url, imageUrl),
-    "images": images[].asset->url,
+    "image": select(
+      defined(image.asset) => {
+        "url": image.asset->url,
+        "alt": image.alt,
+        "caption": image.caption
+      },
+      { "url": imageUrl, "alt": null, "caption": null }
+    ),
+    "images": images[] {
+      "url": asset->url,
+      alt,
+      caption
+    },
     year,
     location
   }`,
@@ -50,7 +61,14 @@ export const queries = {
   aboutContent: `*[_type == "aboutContent"][0] {
     headline,
     story,
-    "image": select(defined(image.asset) => image.asset->url, imageUrl),
+    "image": select(
+      defined(image.asset) => {
+        "url": image.asset->url,
+        "alt": image.alt,
+        "caption": image.caption
+      },
+      { "url": imageUrl, "alt": null, "caption": null }
+    ),
     values[] { title, description },
     stats[] { value, label }
   }`,

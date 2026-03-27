@@ -28,9 +28,23 @@ export const project = defineType({
     }),
     defineField({
       name: "image",
-      title: "Image",
+      title: "Main Image",
       type: "image",
       options: { hotspot: true },
+      fields: [
+        defineField({
+          name: "alt",
+          title: "Alt Text",
+          type: "string",
+          description: "Describe the image for screen readers and SEO.",
+        }),
+        defineField({
+          name: "caption",
+          title: "Caption",
+          type: "string",
+          description: "Optional caption displayed below the image.",
+        }),
+      ],
     }),
     defineField({
       name: "imageUrl",
@@ -43,7 +57,26 @@ export const project = defineType({
       title: "Project Images",
       type: "array",
       description: "Upload up to 20 images for this project.",
-      of: [{ type: "image", options: { hotspot: true } }],
+      of: [
+        {
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: "alt",
+              title: "Alt Text",
+              type: "string",
+              description: "Describe the image for screen readers and SEO.",
+            }),
+            defineField({
+              name: "caption",
+              title: "Caption",
+              type: "string",
+              description: "Optional caption displayed below the image.",
+            }),
+          ],
+        },
+      ],
       validation: (R) => R.max(20),
     }),
     defineField({

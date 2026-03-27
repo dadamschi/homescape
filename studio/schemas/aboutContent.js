@@ -24,6 +24,20 @@ export const aboutContent = defineType({
       title: "About Image",
       type: "image",
       options: { hotspot: true },
+      fields: [
+        defineField({
+          name: "alt",
+          title: "Alt Text",
+          type: "string",
+          description: "Describe the image for screen readers and SEO.",
+        }),
+        defineField({
+          name: "caption",
+          title: "Caption",
+          type: "string",
+          description: "Optional caption displayed below the image.",
+        }),
+      ],
     }),
     defineField({
       name: "imageUrl",

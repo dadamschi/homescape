@@ -17,7 +17,7 @@ export default function Footer() {
               {social.facebook && <a href={social.facebook} target="_blank" rel="noopener noreferrer">{Icons.facebook}</a>}
               {social.instagram && <a href={social.instagram} target="_blank" rel="noopener noreferrer">{Icons.instagram}</a>}
               {social.linkedin && <a href={social.linkedin} target="_blank" rel="noopener noreferrer">{Icons.linkedin}</a>}
-            </div>
+            </div> 
           </div>
           <div>
             <div className="footer-heading">Navigation</div>
