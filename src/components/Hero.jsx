@@ -2,29 +2,30 @@ import { useMemo } from "react";
 import { navigate } from "../store";
 import useCMS from "../data";
 import Icons from "../Icons";
+import { urlFor } from "../../sanity";
 
 export default function Hero() {
-  const { hero, siteSettings } = useCMS();
+  const { hero } = useCMS();
 
   const heroImage = useMemo(() => {
-    const images = siteSettings?.heroImages || [];
+    const images = hero?.heroImages || [];
     if (images.length === 0) return null;
     return images[Math.floor(Math.random() * images.length)];
-  }, [siteSettings?.heroImages]);
+  }, [hero?.heroImages]);
 
   if (!hero) return null;
 
-  const bgStyle = heroImage?.url
-    ? { backgroundImage: `url(${heroImage.url})` }
+  const bgStyle = heroImage
+    ? { backgroundImage: `url(${urlFor(heroImage).width(1920).quality(80).auto("format").url()})` }
     : undefined;
 
   return (
     <section className="hero">
       <div className="hero-bg" style={bgStyle} />
       <div className="hero-content">
-        <div className="hero-label animate-fade-up">
-          Residential &amp; Commercial
-        </div>
+        {/*<div className="hero-label animate-fade-up">*/}
+        {/*  Residential &amp; Commercial*/}
+        {/*</div>*/}
         <h1 className="animate-fade-up animate-delay-1">
           {hero.headline}
         </h1>

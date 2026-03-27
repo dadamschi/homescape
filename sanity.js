@@ -25,19 +25,8 @@ export const queries = {
     title,
     category,
     description,
-    "image": select(
-      defined(image.asset) => {
-        "url": image.asset->url,
-        "alt": image.alt,
-        "caption": image.caption
-      },
-      { "url": imageUrl, "alt": null, "caption": null }
-    ),
-    "images": images[] {
-      "url": asset->url,
-      alt,
-      caption
-    },
+    image,
+    images,
     year,
     location
   }`,
@@ -61,14 +50,7 @@ export const queries = {
   aboutContent: `*[_type == "aboutContent"][0] {
     headline,
     story,
-    "image": select(
-      defined(image.asset) => {
-        "url": image.asset->url,
-        "alt": image.alt,
-        "caption": image.caption
-      },
-      { "url": imageUrl, "alt": null, "caption": null }
-    ),
+    image,
     values[] { title, description },
     stats[] { value, label }
   }`,
@@ -79,16 +61,13 @@ export const queries = {
     phone,
     email,
     social,
-    servingSince,
-    "heroImages": heroImages[] {
-      "url": asset->url,
-      alt
-    }
+    servingSince
   }`,
 
   heroContent: `*[_type == "heroContent"][0] {
     headline,
-    story
+    story,
+    heroImages
   }`,
 };
 

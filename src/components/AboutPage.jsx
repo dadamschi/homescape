@@ -1,16 +1,14 @@
 import useCMS from "../data";
+import { urlFor } from "../../sanity";
 
-// Extract URL from image object or string
-const getImageUrl = (img) => {
-  if (!img) return null;
-  if (typeof img === "string") return img;
-  return img.url || null;
+// Generate optimized image URL
+const getImageUrl = (img, width = 800) => {
+  if (!img?.asset) return null;
+  return urlFor(img).width(width).quality(80).auto("format").url();
 };
 
 const getImageAlt = (img, fallback = "") => {
-  if (!img) return fallback;
-  if (typeof img === "string") return fallback;
-  return img.alt || fallback;
+  return img?.alt || fallback;
 };
 
 const FALLBACK = {

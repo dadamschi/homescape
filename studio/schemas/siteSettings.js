@@ -1,4 +1,4 @@
-import { defineType, defineField, defineArrayMember } from "sanity";
+import { defineType, defineField } from "sanity";
 
 export const siteSettings = defineType({
   name: "siteSettings",
@@ -39,25 +39,6 @@ export const siteSettings = defineType({
         defineField({ name: "facebook", type: "url", title: "Facebook" }),
         defineField({ name: "instagram", type: "url", title: "Instagram" }),
         defineField({ name: "linkedin", type: "url", title: "LinkedIn" }),
-      ],
-    }),
-    defineField({
-      name: "heroImages",
-      title: "Hero Background Images",
-      description: "Upload images for the hero section. A random one is shown on each page load.",
-      type: "array",
-      of: [
-        defineArrayMember({
-          type: "image",
-          options: { hotspot: true },
-          fields: [
-            defineField({
-              name: "alt",
-              type: "string",
-              title: "Alt Text",
-            }),
-          ],
-        }),
       ],
     }),
   ],

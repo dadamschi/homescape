@@ -1,22 +1,20 @@
 import { useState } from "react";
 import useCMS from "../data";
+import { urlFor } from "../../sanity";
 
-// Extract URL from image object or string
-const getImageUrl = (img) => {
-  if (!img) return null;
-  if (typeof img === "string") return img;
-  return img.url || null;
+// Generate optimized image URL
+const getImageUrl = (img, width = 800) => {
+  if (!img?.asset) return null;
+  return urlFor(img).width(width).quality(80).auto("format").url();
 };
 
 const getImageAlt = (img, fallback = "") => {
-  if (!img) return fallback;
-  if (typeof img === "string") return fallback;
-  return img.alt || fallback;
+  return img?.alt || fallback;
 };
 
 function ImageCarousel({ images, fallbackAlt = "" }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const validImages = images.filter((img) => getImageUrl(img));
+  const validImages = images.filter((img) => img?.asset);
 
   if (validImages.length === 0) return null;
   if (validImages.length === 1) {
@@ -54,7 +52,7 @@ export default function ProjectsPage() {
         <div className="section-label animate-fade-up">Portfolio</div>
         <h2 className="section-title animate-fade-up animate-delay-1">Our Projects</h2>
         <p className="section-subtitle animate-fade-up animate-delay-2">
-          A selection of residential, commercial, and renovation projects we've brought to life.
+          A selection of projects we've brought to life.
         </p>
         <div className="gallery-grid" style={{ marginTop: "2rem" }}>
           {projects.map((project, i) => (
@@ -65,7 +63,7 @@ export default function ProjectsPage() {
             >
               <div style={{ overflow: "hidden" }}>
                 {(() => {
-                  const allImages = [project.image, ...(project.images || [])].filter((img) => getImageUrl(img));
+                  const allImages = [project.image, ...(project.images || [])].filter((img) => img?.asset);
                   if (allImages.length > 1) {
                     return <ImageCarousel images={allImages} fallbackAlt={project.title} />;
                   } else if (allImages.length === 1) {
