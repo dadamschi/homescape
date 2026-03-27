@@ -25,6 +25,7 @@ export default function Footer() {
             <a className="footer-link" onClick={() => navigate("projects")}>Projects</a>
             <a className="footer-link" onClick={() => navigate("about")}>About</a>
             <a className="footer-link" onClick={() => navigate("testimonials")}>Testimonials</a>
+            <a className="footer-link" onClick={() => navigate("contact")}>Contact Us</a>
           </div>
           {/*<div>*/}
           {/*  <div className="footer-heading">Services</div>*/}
@@ -35,16 +36,17 @@ export default function Footer() {
           {/*</div>*/}
           <div>
             <div className="footer-heading">Contact</div>
-            {phone && <span className="footer-link">{phone}</span>}
-            {email && <span className="footer-link">{email}</span>}
+            {phone && <span className="footer-link hide-mobile">{Icons.phone} {phone}</span>}
+            {phone && <a className="footer-link show-mobile-only" href={`tel:${phone.replace(/\D/g, '')}`}>{Icons.phone} {phone}</a>}
+            {email && <a className="footer-link" href={`mailto:${email}`}>{Icons.mail} {email}</a>}
             <a className="footer-link" onClick={() => navigate("contact")} style={{ color: "var(--color-accent)", cursor: "pointer" }}>
-              Get a Free Quote →
+              Contact Us! →
             </a>
           </div>
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Homescape Construction Inc. All rights reserved.</span>
-          <span>Crafted with care in the Pacific Northwest</span>
+          <span>Crafted with care in and around Chicago</span>
         </div>
       </div>
     </footer>

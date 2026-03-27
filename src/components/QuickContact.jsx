@@ -47,7 +47,7 @@ export default function QuickContact() {
       {/* Sliding drawer */}
       <div className={`qc-drawer ${open ? "qc-drawer--open" : ""}`}>
         <div className="qc-header">
-          <span className="qc-title">Get a Free Quote</span>
+          <span className="qc-title">Contact Us About Your Project!</span>
           <button className="qc-close" onClick={handleClose} aria-label="Close">
             {Icons.close}
           </button>
@@ -56,7 +56,7 @@ export default function QuickContact() {
         {success ? (
           <div className="qc-success">
             <div className="qc-success-icon">✓</div>
-            <p>Thanks! We'll be in touch within 24 hours.</p>
+            <p>Thanks! We'll be in touch!</p>
             <button className="btn btn-primary" style={{ marginTop: "1rem", width: "100%" }} onClick={handleClose}>
               Done
             </button>
@@ -75,16 +75,16 @@ export default function QuickContact() {
               <label className="form-label">Phone</label>
               <input className="form-input" type="tel" value={form.phone} onChange={update("phone")} placeholder="(optional)" />
             </div>
-            <div className="form-group">
-              <label className="form-label">Service</label>
-              <select className="form-input" value={form.service} onChange={update("service")}>
-                <option value="">Select a service</option>
-                <option value="residential">Residential Build</option>
-                <option value="commercial">Commercial Build</option>
-                <option value="renovation">Renovation</option>
-                <option value="consultation">General Consultation</option>
-              </select>
-            </div>
+            {/*<div className="form-group">*/}
+            {/*  <label className="form-label">Service</label>*/}
+            {/*  <select className="form-input" value={form.service} onChange={update("service")}>*/}
+            {/*    <option value="">Select a service</option>*/}
+            {/*    <option value="residential">Residential Build</option>*/}
+            {/*    <option value="commercial">Commercial Build</option>*/}
+            {/*    <option value="renovation">Renovation</option>*/}
+            {/*    <option value="consultation">General Consultation</option>*/}
+            {/*  </select>*/}
+            {/*</div>*/}
             <div className="form-group">
               <label className="form-label">Message</label>
               <textarea className="form-textarea" value={form.message} onChange={update("message")} placeholder="Tell us about your project..." style={{ minHeight: "80px" }} />
@@ -98,7 +98,7 @@ export default function QuickContact() {
 
       {/* Floating tab — hidden when drawer is open */}
       {!open && (
-        <button className="qc-tab" onClick={() => setOpen(true)} aria-label="Get a free quote">
+        <button className="qc-tab" onClick={() => setOpen(true)} aria-label="Contact us">
           <span className="qc-tab-icon">{Icons.mail}</span>
           <span className="qc-tab-label">Contact Us!</span>
         </button>

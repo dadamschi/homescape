@@ -30,13 +30,12 @@ describe("ContactPage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders all five form fields", () => {
+  it("renders all four form fields", () => {
     render(<ContactPage />);
 
     expect(getFieldByLabel("Name")).toBeInTheDocument();
     expect(getFieldByLabel("Email")).toBeInTheDocument();
     expect(getFieldByLabel("Phone")).toBeInTheDocument();
-    expect(getFieldByLabel("Service")).toBeInTheDocument();
     expect(getFieldByLabel("Message")).toBeInTheDocument();
   });
 
@@ -47,7 +46,6 @@ describe("ContactPage", () => {
     await user.type(getFieldByLabel("Name"), "John Doe");
     await user.type(getFieldByLabel("Email"), "john@example.com");
     await user.type(getFieldByLabel("Phone"), "555-9999");
-    await user.selectOptions(getFieldByLabel("Service"), "residential");
     await user.type(getFieldByLabel("Message"), "I need a new house");
 
     await user.click(screen.getByRole("button", { name: /send inquiry/i }));
@@ -56,7 +54,7 @@ describe("ContactPage", () => {
       name: "John Doe",
       email: "john@example.com",
       phone: "555-9999",
-      service: "residential",
+      service: "",
       message: "I need a new house",
     });
   });
@@ -90,8 +88,8 @@ describe("ContactPage", () => {
   it("renders contact information from CMS", () => {
     render(<ContactPage />);
 
-    // Phone number from mock data should render
-    expect(screen.getByText(/555-1234/)).toBeInTheDocument();
+    // Phone number from mock data should render (appears twice: desktop and mobile versions)
+    expect(screen.getAllByText(/555-1234/)).toHaveLength(2);
   });
 
   it("renders email from site settings", () => {

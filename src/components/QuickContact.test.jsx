@@ -24,53 +24,52 @@ describe("QuickContact", () => {
 
   it("renders the tab button on initial load", () => {
     render(<QuickContact />);
-    expect(screen.getByRole("button", { name: /get a free quote/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contact us/i })).toBeInTheDocument();
   });
 
   it("opens the drawer when the tab is clicked", async () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
 
-    expect(screen.getByText("Get a Free Quote")).toBeInTheDocument();
+    expect(screen.getByText("Contact Us About Your Project!")).toBeInTheDocument();
   });
 
   it("closes the drawer when backdrop is clicked", async () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
-    expect(screen.getByText("Get a Free Quote")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
+    expect(screen.getByText("Contact Us About Your Project!")).toBeInTheDocument();
 
     // Click the backdrop
     const backdrop = document.querySelector(".qc-backdrop");
     await user.click(backdrop);
 
     // Tab button should reappear
-    expect(screen.getByRole("button", { name: /get a free quote/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contact us/i })).toBeInTheDocument();
   });
 
   it("closes the drawer when close button is clicked", async () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
     await user.click(screen.getByRole("button", { name: /close/i }));
 
-    expect(screen.getByRole("button", { name: /get a free quote/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contact us/i })).toBeInTheDocument();
   });
 
   it("renders all form fields inside the open drawer", async () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
 
     expect(getFieldByLabel("Name")).toBeInTheDocument();
     expect(getFieldByLabel("Email")).toBeInTheDocument();
     expect(getFieldByLabel("Phone")).toBeInTheDocument();
-    expect(getFieldByLabel("Service")).toBeInTheDocument();
     expect(getFieldByLabel("Message")).toBeInTheDocument();
   });
 
@@ -78,7 +77,7 @@ describe("QuickContact", () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
     await user.type(getFieldByLabel("Name"), "Jane Smith");
     await user.type(getFieldByLabel("Email"), "jane@example.com");
     await user.type(getFieldByLabel("Message"), "Need a quote");
@@ -98,7 +97,7 @@ describe("QuickContact", () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
     await user.type(getFieldByLabel("Name"), "Jane Smith");
     await user.type(getFieldByLabel("Email"), "jane@example.com");
     await user.click(screen.getByRole("button", { name: /send inquiry/i }));
@@ -112,7 +111,7 @@ describe("QuickContact", () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
     await user.type(getFieldByLabel("Name"), "Jane Smith");
     await user.type(getFieldByLabel("Email"), "jane@example.com");
     await user.click(screen.getByRole("button", { name: /send inquiry/i }));
@@ -123,7 +122,7 @@ describe("QuickContact", () => {
 
     await user.click(screen.getByRole("button", { name: /done/i }));
 
-    expect(screen.getByRole("button", { name: /get a free quote/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /contact us/i })).toBeInTheDocument();
   });
 
   it("locks body scroll when drawer is open", async () => {
@@ -132,7 +131,7 @@ describe("QuickContact", () => {
 
     expect(document.body.style.overflow).toBe("");
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
 
     expect(document.body.style.overflow).toBe("hidden");
   });
@@ -141,7 +140,7 @@ describe("QuickContact", () => {
     const user = userEvent.setup();
     render(<QuickContact />);
 
-    await user.click(screen.getByRole("button", { name: /get a free quote/i }));
+    await user.click(screen.getByRole("button", { name: /contact us/i }));
     expect(document.body.style.overflow).toBe("hidden");
 
     await user.click(screen.getByRole("button", { name: /close/i }));

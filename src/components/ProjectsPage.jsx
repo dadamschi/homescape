@@ -1,21 +1,35 @@
 import { useState } from "react";
 import useCMS from "../data";
 
-function ImageCarousel({ images }) {
+// Extract URL from image object or string
+const getImageUrl = (img) => {
+  if (!img) return null;
+  if (typeof img === "string") return img;
+  return img.url || null;
+};
+
+const getImageAlt = (img, fallback = "") => {
+  if (!img) return fallback;
+  if (typeof img === "string") return fallback;
+  return img.alt || fallback;
+};
+
+function ImageCarousel({ images, fallbackAlt = "" }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const validImages = images.filter(Boolean);
+  const validImages = images.filter((img) => getImageUrl(img));
 
   if (validImages.length === 0) return null;
   if (validImages.length === 1) {
-    return <img src={validImages[0]} alt="" loading="lazy" />;
+    return <img src={getImageUrl(validImages[0])} alt={getImageAlt(validImages[0], fallbackAlt)} loading="lazy" />;
   }
 
   const prev = () => setCurrentIndex((i) => (i === 0 ? validImages.length - 1 : i - 1));
   const next = () => setCurrentIndex((i) => (i === validImages.length - 1 ? 0 : i + 1));
+  const current = validImages[currentIndex];
 
   return (
     <div className="carousel">
-      <img src={validImages[currentIndex]} alt="" loading="lazy" />
+      <img src={getImageUrl(current)} alt={getImageAlt(current, fallbackAlt)} loading="lazy" />
       <button className="carousel-btn carousel-btn-prev" onClick={prev}>‹</button>
       <button className="carousel-btn carousel-btn-next" onClick={next}>›</button>
       <div className="carousel-dots">
@@ -33,10 +47,6 @@ function ImageCarousel({ images }) {
 
 export default function ProjectsPage() {
   const { projects } = useCMS();
-  const [filter, setFilter] = useState("All");
-  const categories = ["All", ...new Set(projects.map((p) => p.category))];
-  const filtered =
-    filter === "All" ? projects : projects.filter((p) => p.category === filter);
 
   return (
     <div className="page">
@@ -46,19 +56,8 @@ export default function ProjectsPage() {
         <p className="section-subtitle animate-fade-up animate-delay-2">
           A selection of residential, commercial, and renovation projects we've brought to life.
         </p>
-        <div className="gallery-filters animate-fade-up animate-delay-3" style={{ marginTop: "2rem" }}>
-          {categories.map((c) => (
-            <button
-              key={c}
-              className={`filter-btn ${filter === c ? "active" : ""}`}
-              onClick={() => setFilter(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-        <div className="gallery-grid">
-          {filtered.map((project, i) => (
+        <div className="gallery-grid" style={{ marginTop: "2rem" }}>
+          {projects.map((project, i) => (
             <div
               key={project._id}
               className="project-card"
@@ -66,11 +65,11 @@ export default function ProjectsPage() {
             >
               <div style={{ overflow: "hidden" }}>
                 {(() => {
-                  const allImages = [project.image, ...(project.images || [])].filter(Boolean);
+                  const allImages = [project.image, ...(project.images || [])].filter((img) => getImageUrl(img));
                   if (allImages.length > 1) {
-                    return <ImageCarousel images={allImages} />;
+                    return <ImageCarousel images={allImages} fallbackAlt={project.title} />;
                   } else if (allImages.length === 1) {
-                    return <img src={allImages[0]} alt={project.title} loading="lazy" />;
+                    return <img src={getImageUrl(allImages[0])} alt={getImageAlt(allImages[0], project.title)} loading="lazy" />;
                   } else {
                     return (
                       <div style={{

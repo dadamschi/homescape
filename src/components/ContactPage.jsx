@@ -31,7 +31,7 @@ export default function ContactPage() {
       <div className="container section">
         <div className="section-label animate-fade-up">Contact</div>
         <h2 className="section-title animate-fade-up animate-delay-1">Let's build something great</h2>
-        <p className="section-subtitle animate-fade-up animate-delay-2" style={{ marginBottom: "3rem" }}>
+        <p className="section-subtitle animate-fade-up animate-delay-2 hide-mobile" style={{ marginBottom: "3rem" }}>
           Ready to start your project? Reach out and we'll get back to you!
         </p>
         <div className="contact-grid">
@@ -57,16 +57,16 @@ export default function ContactPage() {
                     <label className="form-label">Phone</label>
                     <input className="form-input" type="tel" value={form.phone} onChange={updateField("phone")} />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Service</label>
-                    <select className="form-input" value={form.service} onChange={updateField("service")}>
-                      <option value="">Select a service</option>
-                      <option value="residential">Residential Build</option>
-                      <option value="commercial">Commercial Build</option>
-                      <option value="renovation">Renovation</option>
-                      <option value="consultation">General Consultation</option>
-                    </select>
-                  </div>
+                  {/*<div className="form-group">*/}
+                  {/*  <label className="form-label">Service</label>*/}
+                  {/*  <select className="form-input" value={form.service} onChange={updateField("service")}>*/}
+                  {/*    <option value="">Select a service</option>*/}
+                  {/*    <option value="residential">Residential Build</option>*/}
+                  {/*    <option value="commercial">Commercial Build</option>*/}
+                  {/*    <option value="renovation">Renovation</option>*/}
+                  {/*    <option value="consultation">General Consultation</option>*/}
+                  {/*  </select>*/}
+                  {/*</div>*/}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Message</label>
@@ -87,13 +87,14 @@ export default function ContactPage() {
                 <div className="location-detail">{Icons.mapPin} {loc.address}</div>
                 }
                 <div className="section-label" style={{ marginBottom: "0.75rem" }}>Call Us</div>
-                <div className="location-detail">{Icons.phone} {loc.phone}</div>
+                <div className="location-detail hide-mobile">{Icons.phone} {loc.phone}</div>
+                <a className="location-detail show-mobile-only" href={`tel:${loc.phone.replace(/\D/g, '')}`}>{Icons.phone} {loc.phone}</a>
                 {siteSettings.email && (
                     <div style={{ marginTop: "2rem" }}>
                       <div className="section-label" style={{ marginBottom: "0.75rem" }}>Email Us</div>
-                      <div className="location-detail" style={{ fontSize: "0.95rem" }}>
+                      <a className="location-detail" href={`mailto:${siteSettings.email}`} style={{ fontSize: "0.95rem" }}>
                         {Icons.mail} {siteSettings.email}
-                      </div>
+                      </a>
                     </div>
                 )}
               </div>

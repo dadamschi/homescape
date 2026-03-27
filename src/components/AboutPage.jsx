@@ -1,5 +1,18 @@
 import useCMS from "../data";
 
+// Extract URL from image object or string
+const getImageUrl = (img) => {
+  if (!img) return null;
+  if (typeof img === "string") return img;
+  return img.url || null;
+};
+
+const getImageAlt = (img, fallback = "") => {
+  if (!img) return fallback;
+  if (typeof img === "string") return fallback;
+  return img.alt || fallback;
+};
+
 const FALLBACK = {
   headline: "Craftsmanship meets innovation",
   story: "Founded in 2012, Homescape Construction Inc. began with a simple belief: that every structure we build should enhance the lives of those who use it.",
@@ -46,11 +59,11 @@ export default function AboutPage() {
               ))}
             </div>
           </div>
-          {content.image ? (
+          {getImageUrl(content.image) ? (
             <img
               className="about-image animate-fade-in animate-delay-2"
-              src={content.image}
-              alt="Construction team at work"
+              src={getImageUrl(content.image)}
+              alt={getImageAlt(content.image, "Construction team at work")}
               loading="lazy"
             />
           ) : (
