@@ -18,7 +18,8 @@ const FALLBACK = {
     phone: "",
     email: "",
     social: {},
-    servingSince: ""
+    servingSince: "",
+    heroImages: []
   },
   aboutContent: null,
   hero: null,

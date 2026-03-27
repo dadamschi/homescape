@@ -1,15 +1,26 @@
+import { useMemo } from "react";
 import { navigate } from "../store";
 import useCMS from "../data";
 import Icons from "../Icons";
 
 export default function Hero() {
-  const { hero } = useCMS();
+  const { hero, siteSettings } = useCMS();
+
+  const heroImage = useMemo(() => {
+    const images = siteSettings?.heroImages || [];
+    if (images.length === 0) return null;
+    return images[Math.floor(Math.random() * images.length)];
+  }, [siteSettings?.heroImages]);
 
   if (!hero) return null;
 
+  const bgStyle = heroImage?.url
+    ? { backgroundImage: `url(${heroImage.url})` }
+    : undefined;
+
   return (
     <section className="hero">
-      <div className="hero-bg" />
+      <div className="hero-bg" style={bgStyle} />
       <div className="hero-content">
         <div className="hero-label animate-fade-up">
           Residential &amp; Commercial

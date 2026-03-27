@@ -79,7 +79,11 @@ export const queries = {
     phone,
     email,
     social,
-    servingSince
+    servingSince,
+    "heroImages": heroImages[] {
+      "url": asset->url,
+      alt
+    }
   }`,
 
   heroContent: `*[_type == "heroContent"][0] {
