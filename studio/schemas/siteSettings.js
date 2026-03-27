@@ -41,6 +41,25 @@ export const siteSettings = defineType({
         defineField({ name: "linkedin", type: "url", title: "LinkedIn" }),
       ],
     }),
+    defineField({
+      name: "heroImages",
+      title: "Hero Background Images",
+      description: "Upload images for the hero section. A random one is shown on each page load.",
+      type: "array",
+      of: [
+        defineArrayMember({
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: "alt",
+              type: "string",
+              title: "Alt Text",
+            }),
+          ],
+        }),
+      ],
+    }),
   ],
   preview: {
     select: { title: "companyName" },
