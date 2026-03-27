@@ -11,7 +11,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <div className="footer-brand">Homescape Construction Inc<span>.</span></div>
+            <div className="footer-brand"><span className="footer-brand-accent">homescape</span>construction, inc.</div>
             <p className="footer-tagline">{tagline}. {servingSince}.</p>
             <div className="footer-social">
               {social.facebook && <a href={social.facebook} target="_blank" rel="noopener noreferrer">{Icons.facebook}</a>}
@@ -26,13 +26,13 @@ export default function Footer() {
             <a className="footer-link" onClick={() => navigate("about")}>About</a>
             <a className="footer-link" onClick={() => navigate("testimonials")}>Testimonials</a>
           </div>
-          <div>
-            <div className="footer-heading">Services</div>
-            <span className="footer-link">Residential</span>
-            <span className="footer-link">Commercial</span>
-            <span className="footer-link">Renovations</span>
-            <span className="footer-link">Consultation</span>
-          </div>
+          {/*<div>*/}
+          {/*  <div className="footer-heading">Services</div>*/}
+          {/*  <span className="footer-link">Residential</span>*/}
+          {/*  <span className="footer-link">Commercial</span>*/}
+          {/*  <span className="footer-link">Renovations</span>*/}
+          {/*  <span className="footer-link">Consultation</span>*/}
+          {/*</div>*/}
           <div>
             <div className="footer-heading">Contact</div>
             {phone && <span className="footer-link">{phone}</span>}

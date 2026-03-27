@@ -32,7 +32,7 @@ export default function ContactPage() {
         <div className="section-label animate-fade-up">Contact</div>
         <h2 className="section-title animate-fade-up animate-delay-1">Let's build something great</h2>
         <p className="section-subtitle animate-fade-up animate-delay-2" style={{ marginBottom: "3rem" }}>
-          Ready to start your project? Reach out and we'll get back to you within 24 hours.
+          Ready to start your project? Reach out and we'll get back to you!
         </p>
         <div className="contact-grid">
           <div className="animate-fade-up animate-delay-3">
@@ -79,25 +79,25 @@ export default function ContactPage() {
             )}
           </div>
           <div className="animate-fade-up animate-delay-4">
-            <div className="section-label" style={{ marginBottom: "1.25rem" }}>Our Locations</div>
+            {/*<div className="section-label" style={{ marginBottom: "1.25rem" }}>Our Locations</div>*/}
             {locations.map((loc) => (
               <div key={loc._id} className="location-card">
-                <div className="location-name">{loc.name}</div>
+                {/*<div className="location-name">{loc.name}</div>*/}
                 { loc.address &&
                 <div className="location-detail">{Icons.mapPin} {loc.address}</div>
                 }
+                <div className="section-label" style={{ marginBottom: "0.75rem" }}>Call Us</div>
                 <div className="location-detail">{Icons.phone} {loc.phone}</div>
-                <div className="location-detail"><span style={{ fontSize: "0.8rem" }}>🕒</span> {loc.hours}</div>
+                {siteSettings.email && (
+                    <div style={{ marginTop: "2rem" }}>
+                      <div className="section-label" style={{ marginBottom: "0.75rem" }}>Email Us</div>
+                      <div className="location-detail" style={{ fontSize: "0.95rem" }}>
+                        {Icons.mail} {siteSettings.email}
+                      </div>
+                    </div>
+                )}
               </div>
             ))}
-            {siteSettings.email && (
-              <div style={{ marginTop: "2rem" }}>
-                <div className="section-label" style={{ marginBottom: "0.75rem" }}>Email Us</div>
-                <div className="location-detail" style={{ fontSize: "0.95rem" }}>
-                  {Icons.mail} {siteSettings.email}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

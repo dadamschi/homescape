@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useStore, { navigate } from "../store";
 import Icons from "../Icons";
+import ThemeSwitch from "./ThemeSwitch";
 
 const NAV_LINKS = [
   { id: "home", label: "Home" },
@@ -22,7 +23,7 @@ export default function Nav() {
     <>
       <nav className="nav">
         <div className="nav-logo" onClick={() => handleNav("home")}>
-          Homescape Construction Inc<span>.</span>
+          <span className="nav-logo-accent">homescape</span>construction, inc.
         </div>
         <ul className="nav-links">
           {NAV_LINKS.map((l) => (
@@ -35,12 +36,13 @@ export default function Nav() {
               </a>
             </li>
           ))}
-          <li>
-            <a className="nav-cta" onClick={() => handleNav("contact")}>
-              Get a Quote
-            </a>
-          </li>
+          {/*<li>*/}
+          {/*  <a className="nav-cta" onClick={() => handleNav("contact")}>*/}
+          {/*    Get a Quote*/}
+          {/*  </a>*/}
+          {/*</li>*/}
         </ul>
+        <ThemeSwitch />
         <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>
           {Icons.menu}
         </button>
@@ -60,7 +62,7 @@ export default function Nav() {
             onClick={() => handleNav("contact")}
             style={{ color: "var(--color-accent)" }}
           >
-            Get a Quote
+            Contact us!
           </a>
         </div>
       )}

@@ -5,11 +5,17 @@ const useStore = create((set) => ({
   menuOpen: false,
   leadFormSubmitting: false,
   leadFormSuccess: false,
+  theme: localStorage.getItem("hc-theme") || "green",
 
   setPage: (page) => set({ currentPage: page }),
   setMenuOpen: (open) => set({ menuOpen: open }),
   setLeadFormSubmitting: (val) => set({ leadFormSubmitting: val }),
   setLeadFormSuccess: (val) => set({ leadFormSuccess: val }),
+  setTheme: (theme) => {
+    localStorage.setItem("hc-theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    set({ theme });
+  },
 }));
 
 export const navigate = (page) => {

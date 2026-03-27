@@ -8,6 +8,7 @@ import AboutPage from "./components/AboutPage";
 import TestimonialsPage from "./components/TestimonialsPage";
 import ContactPage from "./components/ContactPage";
 import Footer from "./components/Footer";
+import QuickContact from "./components/QuickContact";
 import "./styles.css";
 
 const PAGES = {
@@ -39,12 +40,22 @@ function Router() {
     return <Page />;
 }
 
+function ThemeApplier() {
+    const theme = useStore((s) => s.theme);
+    useEffect(() => {
+        document.documentElement.setAttribute("data-theme", theme);
+    }, [theme]);
+    return null;
+}
+
 export default function App() {
     return (
         <CMSProvider>
+            <ThemeApplier />
             <Nav />
             <Router />
             <Footer />
+            <QuickContact />
         </CMSProvider>
     );
 }
