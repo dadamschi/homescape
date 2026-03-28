@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { sanityFetch, urlFor } from "@/lib/sanity";
 import { queries } from "@/lib/queries";
-import type { AboutContent, SanityImage } from "@/lib/types";
+import type { AboutContent, SanityImage, HeroContent } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -54,10 +54,16 @@ function getImageAlt(img: SanityImage | undefined, fallback = ""): string {
 }
 
 export default async function AboutPage() {
-  const aboutContent = await sanityFetch<AboutContent | null>(queries.aboutContent);
+  const [aboutContent, heroContent] = await Promise.all([
+    sanityFetch<AboutContent | null>(queries.aboutContent),
+    sanityFetch<HeroContent | null>(queries.heroContent),
+  ]);
   const content = aboutContent || FALLBACK;
 
-  const imageUrl = getImageUrl(aboutContent?.image);
+  // Use about image, or fall back to first hero image
+  const aboutImage = aboutContent?.image;
+  const fallbackImage = heroContent?.heroImages?.[0];
+  const imageUrl = getImageUrl(aboutImage) || getImageUrl(fallbackImage);
 
   return (
     <div className="page">
@@ -90,7 +96,7 @@ export default async function AboutPage() {
             <img
               className="about-image animate-fade-in animate-delay-2"
               src={imageUrl}
-              alt={getImageAlt(aboutContent?.image, "Construction team at work")}
+              alt={getImageAlt(aboutImage, getImageAlt(fallbackImage, "Construction team at work"))}
               loading="lazy"
             />
           ) : (
