@@ -9,8 +9,8 @@ _Last updated: March 2026_
 | Layer | Provider | Role |
 |---|---|---|
 | Domain Registration | GoDaddy | Owns the domain name; nameservers delegated to Cloudflare |
-| DNS Management | Cloudflare (free tier) | Authoritative DNS, proxying, email routing |
-| Web Hosting | Vercel (`homescape-construction` team) | Hosts the marketing SPA |
+| DNS Management | Cloudflare (free tier) | Authoritative DNS, email routing |
+| Web Hosting | Vercel (`homescape-construction` team) | Hosts the Next.js marketing site |
 | Email Routing | Cloudflare Email Routing | Forwards inbound mail to Gmail |
 | Email Inbox | Gmail (`daveporter66@gmail.com`) | Receives all forwarded mail |
 | CMS | Sanity.io (personal account) | Content management |
@@ -35,15 +35,14 @@ GoDaddy's only active role is renewing the domain registration annually. No DNS 
 
 DNS is managed entirely in Cloudflare. Current records:
 
-### A Records
+### A/CNAME Records (Vercel)
 
-| Name | Value | Proxy |
-|---|---|---|
-| `homescapeconstruction.com` | `74.220.199.6` | Proxied |
-| `www` | `74.220.199.6` | Proxied |
-| `*` (wildcard) | `74.220.199.6` | Proxied |
+| Type | Name | Value | Proxy |
+|---|---|---|---|
+| A | `@` | `76.76.21.21` | DNS only (gray cloud) |
+| CNAME | `www` | `cname.vercel-dns.com` | DNS only (gray cloud) |
 
-> ⚠️ **Pending:** These A records still point to the old HostMonster IP (`74.220.199.6`). Once the Vercel deployment is finalized, update all three to `76.76.21.21` (Vercel's IP) to bring the live site online.
+> **Note:** Proxy status must be "DNS only" (gray cloud) for Vercel SSL to work properly.
 
 ### MX Records (Email Routing)
 
@@ -107,29 +106,31 @@ Once verified, you can choose `info@homescapeconstruction.com` as the From addre
 - **Team scope:** `homescape-construction`
 - **GitHub repo:** `dadamschi/homescape`
 - **Local project path:** `/Users/dadamsgs/work/homescape`
-- **Target production domain:** `homescapeconstruction.com`
-- **Vercel IP (for A record):** `76.76.21.21`
-
-> The domain has been added to Vercel via `vercel domains add homescapeconstruction.com --scope homescape-construction`. The A records in Cloudflare still need to be updated from the HostMonster IP to Vercel's IP before the live site will resolve correctly.
+- **Production domain:** `homescapeconstruction.com` ✓ Active
+- **Framework:** Next.js 15 (App Router with SSR)
 
 ---
 
+## Completed Tasks
+
+- [x] Update Cloudflare A record to `76.76.21.21` (Vercel)
+- [x] Update Cloudflare www CNAME to `cname.vercel-dns.com`
+- [x] Set proxy status to "DNS only" for Vercel SSL
+- [x] Verify domain in Vercel
+
 ## Pending Tasks
 
-- [ ] Update Cloudflare A records from `74.220.199.6` → `76.76.21.21` (Vercel)
 - [ ] Configure Gmail "Send As" for `info@homescapeconstruction.com`
 - [ ] Deploy Sanity Studio
-- [ ] Migrate project image URLs across six Sanity documents
 - [ ] Update Sanity CORS origins to include `https://homescapeconstruction.com`
-- [ ] Set up Google Apps Script Web App for lead capture form
 
 ---
 
 ## Consolidation Recommendations
 
-The current setup uses four separate services (GoDaddy, HostMonster, Cloudflare, Vercel) where two or three would suffice. Here's an honest assessment:
+The current setup uses four separate services (GoDaddy, Cloudflare, Vercel, Sanity) which is reasonable. Here's an honest assessment:
 
-### Option A — Keep Cloudflare, transfer domain away from GoDaddy ✅ Recommended
+### Option A — Transfer domain to Cloudflare Registrar ✅ Recommended
 
 Transfer the domain registration from GoDaddy to **Cloudflare Registrar**.
 
@@ -159,21 +160,12 @@ If the business needs a proper `info@homescapeconstruction.com` mailbox (not jus
 
 ---
 
-### Option C — Migrate DNS to Vercel (not recommended)
-
-Vercel offers DNS management. You _could_ point nameservers there instead of Cloudflare.
-
-**Why not:** Cloudflare's free tier provides DDoS protection, caching, analytics, and Email Routing that Vercel doesn't replicate. No reason to move.
-
----
-
 ### Summary Recommendation
 
 | Action | Priority | Cost |
 |---|---|---|
-| Transfer domain from GoDaddy to Cloudflare Registrar | Medium — do at next renewal | ~$10–12/yr (saves vs GoDaddy renewal) |
 | Configure Gmail "Send As" | High — do now | Free |
-| Update A records to Vercel IP | High — do when ready to go live | Free |
+| Transfer domain from GoDaddy to Cloudflare Registrar | Medium — do at next renewal | ~$10–12/yr (saves vs GoDaddy renewal) |
 | Add Google Workspace | Low — revisit if business grows | $6/month |
 
 The single highest-leverage move is **Gmail Send As** (free, 15 minutes of work) — it gives a professional send address immediately without any new services or cost.
