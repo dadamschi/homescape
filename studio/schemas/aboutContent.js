@@ -41,7 +41,7 @@ export const aboutContent = defineType({
           name: "photoCredit",
           title: "Photo Credit",
           type: "string",
-          description: "Photographer or source credit (e.g., 'Photo by John Smith').",
+          description: "Photographer or source credit (e.g., 'Courtesy of Sam Jenkins').",
         }),
       ],
     }),
