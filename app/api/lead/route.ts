@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 
-const SHEETS_URL = process.env.GOOGLE_SHEETS_URL;
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface LeadData {
   name: string;
@@ -24,25 +25,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If no Sheets URL configured, log and return success
-    if (!SHEETS_URL) {
-      console.log("Lead submitted (no Sheets URL configured):", body);
+    // If no API key configured, log and return success
+    if (!process.env.RESEND_API_KEY) {
+      console.log("Lead submitted (no Resend API key configured):", body);
       return NextResponse.json({ success: true, message: "Lead recorded" });
     }
 
-    // Forward to Google Sheets
-    const response = await fetch(SHEETS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...body,
-        timestamp: body.timestamp || new Date().toISOString(),
-      }),
+    // Send email notification
+    await resend.emails.send({
+      from: "Homescape Website <noreply@homescapeconstruction.com>",
+      to: "info@homescapeconstruction.com",
+      replyTo: body.email,
+      subject: `New Lead: ${body.name}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${body.name}</p>
+        <p><strong>Email:</strong> ${body.email}</p>
+        <p><strong>Phone:</strong> ${body.phone || "Not provided"}</p>
+        <p><strong>Message:</strong></p>
+        <p>${body.message || "No message"}</p>
+        <hr />
+        <p style="color: #666; font-size: 12px;">
+          Source: ${body.source || "Contact Form"}<br />
+          Submitted: ${body.timestamp || new Date().toISOString()}
+        </p>
+      `,
     });
-
-    if (!response.ok) {
-      throw new Error(`Sheets API returned ${response.status}`);
-    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
