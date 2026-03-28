@@ -44,6 +44,12 @@ export const project = defineType({
           type: "string",
           description: "Optional caption displayed below the image.",
         }),
+        defineField({
+          name: "photoCredit",
+          title: "Photo Credit",
+          type: "string",
+          description: "Photographer or source credit (e.g., 'Photo by John Smith').",
+        }),
       ],
     }),
     defineField({
@@ -73,6 +79,12 @@ export const project = defineType({
               title: "Caption",
               type: "string",
               description: "Optional caption displayed below the image.",
+            }),
+            defineField({
+              name: "photoCredit",
+              title: "Photo Credit",
+              type: "string",
+              description: "Photographer or source credit (e.g., 'Photo by John Smith').",
             }),
           ],
         },

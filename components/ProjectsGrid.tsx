@@ -26,7 +26,7 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
           className="project-card"
           style={{ animationDelay: `${i * 0.1}s` }}
         >
-          <div style={{ overflow: "hidden" }}>
+          <div style={{ overflow: "hidden", position: "relative" }}>
             {(() => {
               const allImages = [project.image, ...(project.images || [])].filter(
                 (img): img is SanityImage => Boolean(img?.asset)
@@ -36,12 +36,16 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
                 return <ImageCarousel images={allImages} fallbackAlt={project.title} />;
               } else if (allImages.length === 1) {
                 const url = getImageUrl(allImages[0]);
+                const photoCredit = allImages[0].photoCredit;
                 return url ? (
-                  <img
-                    src={url}
-                    alt={getImageAlt(allImages[0], project.title)}
-                    loading="lazy"
-                  />
+                  <>
+                    <img
+                      src={url}
+                      alt={getImageAlt(allImages[0], project.title)}
+                      loading="lazy"
+                    />
+                    {photoCredit && <PhotoCreditTag credit={photoCredit} />}
+                  </>
                 ) : (
                   <NoImagePlaceholder />
                 );
@@ -59,6 +63,27 @@ export default function ProjectsGrid({ projects }: ProjectsGridProps) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PhotoCreditTag({ credit }: { credit: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: "8px",
+        right: "8px",
+        background: "rgba(0, 0, 0, 0.7)",
+        color: "#fff",
+        fontSize: "0.65rem",
+        padding: "4px 8px",
+        borderRadius: "4px",
+        letterSpacing: "0.02em",
+        pointerEvents: "none",
+      }}
+    >
+      {credit}
     </div>
   );
 }

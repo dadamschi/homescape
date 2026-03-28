@@ -26,13 +26,17 @@ export default function ImageCarousel({ images, fallbackAlt = "" }: ImageCarouse
 
   if (validImages.length === 1) {
     const url = getImageUrl(validImages[0]);
+    const photoCredit = validImages[0].photoCredit;
     if (!url) return null;
     return (
-      <img
-        src={url}
-        alt={getImageAlt(validImages[0], fallbackAlt)}
-        loading="lazy"
-      />
+      <div style={{ position: "relative" }}>
+        <img
+          src={url}
+          alt={getImageAlt(validImages[0], fallbackAlt)}
+          loading="lazy"
+        />
+        {photoCredit && <PhotoCreditTag credit={photoCredit} />}
+      </div>
     );
   }
 
@@ -40,6 +44,7 @@ export default function ImageCarousel({ images, fallbackAlt = "" }: ImageCarouse
   const next = () => setCurrentIndex((i) => (i === validImages.length - 1 ? 0 : i + 1));
   const current = validImages[currentIndex];
   const currentUrl = getImageUrl(current);
+  const photoCredit = current.photoCredit;
 
   if (!currentUrl) return null;
 
@@ -50,6 +55,7 @@ export default function ImageCarousel({ images, fallbackAlt = "" }: ImageCarouse
         alt={getImageAlt(current, fallbackAlt)}
         loading="lazy"
       />
+      {photoCredit && <PhotoCreditTag credit={photoCredit} />}
       <button className="carousel-btn carousel-btn-prev" onClick={prev}>
         ‹
       </button>
@@ -65,6 +71,27 @@ export default function ImageCarousel({ images, fallbackAlt = "" }: ImageCarouse
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+function PhotoCreditTag({ credit }: { credit: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: "40px",
+        right: "8px",
+        background: "rgba(0, 0, 0, 0.7)",
+        color: "#fff",
+        fontSize: "0.65rem",
+        padding: "4px 8px",
+        borderRadius: "4px",
+        letterSpacing: "0.02em",
+        pointerEvents: "none",
+      }}
+    >
+      {credit}
     </div>
   );
 }
