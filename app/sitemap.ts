@@ -1,9 +1,12 @@
 import { MetadataRoute } from "next";
+import { sanityFetch } from "@/lib/sanity";
+import { queries } from "@/lib/queries";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://homescapeconstruction.com";
 
-  return [
+  // Static pages
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -34,5 +37,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
   ];
+
+  // Dynamic blog posts
+  try {
+    const blogSlugs = await sanityFetch<string[]>(queries.allBlogSlugs);
+    const blogPages: MetadataRoute.Sitemap = blogSlugs.map((slug) => ({
+      url: `${baseUrl}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+
+    return [...staticPages, ...blogPages];
+  } catch {
+    // If Sanity fetch fails, return static pages only
+    return staticPages;
+  }
 }

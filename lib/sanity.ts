@@ -26,6 +26,15 @@ export function urlFor(source: SanityImage) {
 }
 
 // Type-safe data fetcher
-export async function sanityFetch<T>(query: string): Promise<T> {
-  return sanityClient.fetch(query);
+export async function sanityFetch<T>(query: string, params?: Record<string, unknown>): Promise<T> {
+  return sanityClient.fetch(query, params);
 }
+
+// Write client for mutations (server-only)
+export const sanityWriteClient = createClient({
+  projectId: projectId!,
+  dataset,
+  apiVersion: "2025-02-06",
+  useCdn: false,
+  token: process.env.SANITY_WRITE_TOKEN,
+});

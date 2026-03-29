@@ -86,3 +86,34 @@ export interface LeadFormData {
   message: string;
   source?: string;
 }
+
+// Blog post (Portable Text block type)
+export interface PortableTextBlock {
+  _type: "block";
+  _key: string;
+  style?: string;
+  children: Array<{
+    _type: string;
+    _key: string;
+    text: string;
+    marks?: string[];
+  }>;
+  markDefs?: Array<{
+    _type: string;
+    _key: string;
+    [key: string]: unknown;
+  }>;
+}
+
+export interface BlogPost {
+  _id: string;
+  _type: "blogPost";
+  title: string;
+  slug: { current: string };
+  publishedAt?: string;
+  excerpt?: string;
+  body?: PortableTextBlock[];
+  category?: string;
+  dataSources?: string[];
+  generatedAt?: string;
+}

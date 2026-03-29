@@ -50,4 +50,26 @@ export const queries = {
     story,
     heroImages
   }`,
+
+  blogPosts: `*[_type == "blogPost" && defined(publishedAt)] | order(publishedAt desc) {
+    _id,
+    title,
+    slug,
+    publishedAt,
+    excerpt,
+    category
+  }`,
+
+  blogPostBySlug: `*[_type == "blogPost" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    publishedAt,
+    excerpt,
+    body,
+    category,
+    dataSources
+  }`,
+
+  allBlogSlugs: `*[_type == "blogPost" && defined(publishedAt)].slug.current`,
 };
