@@ -23,18 +23,21 @@ This is a Next.js 15 marketing site for Homescape Construction with server-side 
 ### Page Structure
 ```
 app/
-├── layout.tsx         # Root layout (Nav, Footer, QuickContact)
-├── page.tsx           # Home (Hero)
-├── projects/page.tsx  # Projects portfolio
-├── about/page.tsx     # Company info
+├── layout.tsx              # Root layout (Nav, Footer, QuickContact)
+├── page.tsx                # Home (Hero)
+├── projects/page.tsx       # Projects portfolio
+├── about/page.tsx          # Company info
 ├── testimonials/page.tsx
-├── contact/page.tsx   # Lead capture form
-├── api/lead/route.ts  # Lead submission → Resend email
-├── api/revalidate/route.ts  # On-demand cache busting
-├── sitemap.ts         # Dynamic XML sitemap
-├── robots.ts          # robots.txt generation
-├── icon.svg           # Favicon
-└── apple-icon.svg     # Apple touch icon
+├── contact/page.tsx        # Lead capture form
+├── blog/page.tsx           # Blog listing
+├── blog/[slug]/page.tsx    # Individual blog posts
+├── api/lead/route.ts       # Lead submission → Resend email
+├── api/revalidate/route.ts # On-demand cache busting
+├── api/generate-blog/route.ts  # AI blog generation (cron)
+├── sitemap.ts              # Dynamic XML sitemap
+├── robots.ts               # robots.txt generation
+├── icon.svg                # Favicon
+└── apple-icon.svg          # Apple touch icon
 ```
 
 ### Data Layer
@@ -56,10 +59,17 @@ All components in `components/`:
 - `ProjectsGrid.tsx` — Project portfolio with photo credits (client component)
 - `ImageCarousel.tsx` — Image carousel with photo credits (client component)
 - `ContactForm.tsx` — Lead capture form (client component)
+- `BlogCard.tsx` — Blog post card (client component)
 - `Nav.tsx`, `Footer.tsx` — Layout components
 - `QuickContact.tsx` — Floating contact drawer
 - `ThemeSwitch.tsx` — Theme toggle
 - `ThemeProvider.tsx` — Theme hydration
+
+### Automated Blog Generation
+- **Cron:** GitHub Actions runs weekly (Sunday 9am Chicago)
+- **API:** `/api/generate-blog` fetches Chicago data + Claude generates posts
+- **Data sources:** Chicago Data Portal (permits), OpenWeatherMap
+- **Output:** 2-3 focused posts per week, created as Sanity drafts
 
 ## Environment Variables
 

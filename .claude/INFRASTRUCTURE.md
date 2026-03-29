@@ -66,6 +66,9 @@ margo.ns.cloudflare.com
 | `NEXT_PUBLIC_SANITY_DATASET` | `production` | Sanity CMS |
 | `RESEND_API_KEY` | `re_...` | Contact form email |
 | `REVALIDATION_SECRET` | *(optional)* | On-demand cache busting |
+| `ANTHROPIC_API_KEY` | `sk-ant-...` | Blog generation (Claude API) |
+| `SANITY_WRITE_TOKEN` | `sk...` | Blog generation (Sanity mutations) |
+| `CRON_SECRET` | Random string | Authenticate cron requests |
 
 ### vercel.json
 
@@ -159,6 +162,18 @@ To bust cache when publishing content in Sanity:
 | `story` | text |
 | `heroImages` | image[] |
 
+#### `blogPost`
+| Field | Type | Notes |
+|---|---|---|
+| `title` | string | Required |
+| `slug` | slug | Auto-generated from title |
+| `publishedAt` | datetime | Required for post to appear on site |
+| `excerpt` | text | Summary for listings and SEO |
+| `body` | array of blocks | Portable Text content |
+| `category` | string | Chicago Trends / Seasonal Tips / Industry News / Home Improvement |
+| `dataSources` | string[] | Sources used for AI generation |
+| `generatedAt` | datetime | When AI generated the draft |
+
 ### Studio deploy
 
 ```bash
@@ -175,14 +190,16 @@ Data is fetched server-side in Next.js page components using `sanityFetch()`.
 
 ```
 Sanity API
-  └── lib/sanity.ts (sanityClient, sanityFetch)
+  └── lib/sanity.ts (sanityClient, sanityFetch, sanityWriteClient)
         └── Server Components fetch directly
               ├── app/layout.tsx (siteSettings)
               ├── app/page.tsx (heroContent)
               ├── app/projects/page.tsx (projects)
               ├── app/about/page.tsx (aboutContent, heroContent fallback)
               ├── app/testimonials/page.tsx (testimonials)
-              └── app/contact/page.tsx (locations, siteSettings)
+              ├── app/contact/page.tsx (locations, siteSettings)
+              ├── app/blog/page.tsx (blogPosts)
+              └── app/blog/[slug]/page.tsx (blogPost by slug)
 ```
 
 **Sanity client config:** `lib/sanity.ts`
@@ -237,6 +254,91 @@ Lead arrives in Gmail
 
 ---
 
+## Automated Blog Generation
+
+AI-powered blog post generation using Chicago data sources.
+
+### Architecture
+
+```
+GitHub Actions Cron (Sunday 9am Chicago)
+    ↓
+POST /api/generate-blog
+    ↓
+┌─────────────────────────────────────┐
+│  Fetch Chicago Data                 │
+│  • City of Chicago Data Portal      │
+│  •   (building permits)             │
+│  • OpenWeatherMap (optional)        │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│  Claude API (Anthropic)             │
+│  • Generates 2-3 focused posts      │
+│  • Each 200-350 words               │
+│  • Different topics/categories      │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│  Sanity CMS                         │
+│  • Creates draft blog posts         │
+│  • Sets publishedAt automatically   │
+│  • Human reviews in Studio          │
+└─────────────────────────────────────┘
+    ↓
+/blog (listing) + /blog/[slug] (posts)
+```
+
+### GitHub Actions Cron
+
+**File:** `.github/workflows/generate-blog.yml`
+**Schedule:** Every Sunday at 9am Chicago time (`0 15 * * 0` UTC)
+**Manual trigger:** Available via Actions tab
+
+**Required GitHub Secrets:**
+
+| Secret | Value |
+|--------|-------|
+| `CRON_SECRET` | Same as Vercel env var |
+| `SITE_URL` | `https://homescapeconstruction.com` |
+
+### Data Sources
+
+| Source | API | Data |
+|--------|-----|------|
+| Chicago Data Portal | `data.cityofchicago.org` | Recent building permits |
+| OpenWeatherMap | `api.openweathermap.org` | Current weather (optional) |
+
+### Blog Categories
+
+- **Chicago Trends** — Permit activity, neighborhood development
+- **Seasonal Tips** — Weather-related construction advice
+- **Industry News** — Local construction news and updates
+- **Home Improvement** — Practical homeowner advice
+
+### Local Testing
+
+```bash
+# Generate posts locally
+curl -X POST http://localhost:3000/api/generate-blog
+
+# Check Sanity Studio for drafts
+cd studio && npm run dev   # http://localhost:3333
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `app/api/generate-blog/route.ts` | Generation API endpoint |
+| `app/blog/page.tsx` | Blog listing page |
+| `app/blog/[slug]/page.tsx` | Individual post page |
+| `components/BlogCard.tsx` | Post card component |
+| `studio/schemas/blogPost.js` | Sanity schema |
+| `.github/workflows/generate-blog.yml` | Cron schedule |
+
+---
+
 ## Completed Tasks
 
 - [x] Migrate from Vite SPA to Next.js 15 SSR
@@ -250,18 +352,22 @@ Lead arrives in Gmail
 - [x] Add photoCredit field to project images
 - [x] Set up Resend for contact form emails
 - [x] Add favicon (H with roof peak)
+- [x] Verify domain in Resend (DNS records added to Cloudflare)
+- [x] Add `RESEND_API_KEY` to Vercel environment variables
+- [x] Deploy Sanity Studio
+- [x] Add automated blog generation system
+- [x] Add blog pages (`/blog`, `/blog/[slug]`)
+- [x] Set up GitHub Actions cron for weekly blog generation
 
 ## Pending Tasks
 
-- [ ] Deploy Sanity Studio (`npx sanity deploy` from `/studio`)
 - [ ] Configure Gmail "Send As" for `info@homescapeconstruction.com`
 - [ ] Set up Sanity webhook for on-demand revalidation
 - [ ] Add `REVALIDATION_SECRET` to Vercel env vars
-
-## Recently Completed
-
-- [x] Verify domain in Resend (DNS records added to Cloudflare)
-- [x] Add `RESEND_API_KEY` to Vercel environment variables
+- [ ] Add `ANTHROPIC_API_KEY` to Vercel env vars
+- [ ] Add `SANITY_WRITE_TOKEN` to Vercel env vars
+- [ ] Add `CRON_SECRET` to Vercel env vars + GitHub Secrets
+- [ ] Add `SITE_URL` to GitHub Secrets
 
 ---
 
@@ -287,8 +393,19 @@ cd studio && npm run dev   # http://localhost:3333
 **Required `.env.local` at project root:**
 
 ```
+# Sanity CMS
 NEXT_PUBLIC_SANITY_PROJECT_ID=2omgdk67
 NEXT_PUBLIC_SANITY_DATASET=production
+SANITY_WRITE_TOKEN=sk...     # Get from sanity.io → Manage → API → Tokens (Editor role)
+
+# Email
 RESEND_API_KEY=re_xxxxx      # Get from resend.com
-REVALIDATION_SECRET=         # Optional, for webhook auth
+
+# Blog generation
+ANTHROPIC_API_KEY=sk-ant-... # Get from console.anthropic.com
+OPENWEATHER_API_KEY=         # Optional, for weather data
+
+# Security
+REVALIDATION_SECRET=         # Optional, for Sanity webhook auth
+CRON_SECRET=                 # For GitHub Actions cron auth
 ```
