@@ -1,0 +1,17 @@
+name: Generate Blog Posts
+
+on:
+  schedule:
+    # Every Sunday at 9am Chicago time (3pm UTC during CDT, 4pm UTC during CST)
+    - cron: '0 15 * * 0'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger blog generation
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/generate-blog"
