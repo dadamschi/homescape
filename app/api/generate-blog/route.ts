@@ -23,11 +23,15 @@ interface WeatherData {
   name: string;
 }
 
-interface BlogContent {
+interface BlogPost {
   title: string;
   excerpt: string;
   body: string;
   category: "Chicago Trends" | "Seasonal Tips" | "Industry News" | "Home Improvement";
+}
+
+interface GeneratedPosts {
+  posts: BlogPost[];
 }
 
 // Fetch recent Chicago building permits
@@ -124,10 +128,10 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-// Build the prompt for Claude
+// Build the prompt for Claude - generates multiple focused posts
 function buildPrompt(permits: ChicagoPermit[], weather: WeatherData | null): string {
   const permitsSection = permits.length > 0
-    ? `## Recent Chicago Building Permits (last 10 issued)\n${JSON.stringify(permits.slice(0, 5), null, 2)}`
+    ? `## Recent Chicago Building Permits\n${JSON.stringify(permits.slice(0, 8), null, 2)}`
     : "No recent permit data available.";
 
   const weatherSection = weather
@@ -136,29 +140,43 @@ function buildPrompt(permits: ChicagoPermit[], weather: WeatherData | null): str
 
   return `You are a content writer for Homescape Construction, a Chicago-based residential and commercial construction company serving Chicagoland since 2010.
 
-Based on the following Chicago construction and weather data, write a blog post that would be valuable to homeowners considering construction or renovation projects.
+Based on the following Chicago data, generate 2-3 SHORT, FOCUSED blog posts. Each post should cover ONE specific topic.
 
 ${permitsSection}
 
 ${weatherSection}
 
-Write a blog post and respond ONLY with valid JSON in this exact format (no markdown code blocks, just the JSON):
+Generate 2-3 separate blog posts. Each should be focused on a SINGLE topic:
+- One post about a specific neighborhood or permit trend (if permit data available)
+- One post with seasonal/weather-related construction tips (if weather data available)
+- One post with practical homeowner advice
+
+Respond ONLY with valid JSON (no markdown code blocks):
 {
-  "title": "An engaging, SEO-friendly title related to Chicago construction",
-  "excerpt": "2-3 sentence summary that hooks the reader",
-  "body": "Full article in markdown format (500-800 words). Use ## for section headings. Focus on practical advice.",
-  "category": "Chicago Trends"
+  "posts": [
+    {
+      "title": "Specific, engaging title",
+      "excerpt": "1-2 sentence hook",
+      "body": "Short article in markdown (200-350 words). One clear topic. Use ## for one section heading max.",
+      "category": "Chicago Trends"
+    },
+    {
+      "title": "...",
+      "excerpt": "...",
+      "body": "...",
+      "category": "Seasonal Tips"
+    }
+  ]
 }
 
-The category must be one of: "Chicago Trends", "Seasonal Tips", "Industry News", "Home Improvement"
+Categories: "Chicago Trends", "Seasonal Tips", "Industry News", "Home Improvement"
 
 Guidelines:
-- Reference specific Chicago neighborhoods when relevant to permits data
-- Include seasonal considerations based on weather
-- Provide actionable advice for homeowners
-- Mention Homescape Construction naturally where appropriate
-- Use a professional but approachable tone
-- Include statistics or trends when the data supports them`;
+- Keep each post SHORT and focused (200-350 words)
+- One main idea per post
+- Actionable advice for Chicago homeowners
+- Professional but approachable tone
+- Reference specific neighborhoods when relevant`;
 }
 
 export async function POST(request: NextRequest) {
@@ -192,13 +210,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`Fetched ${permits.length} permits, weather: ${weather ? "yes" : "no"}`);
 
-    // 2. Generate blog post with Claude
+    // 2. Generate blog posts with Claude
     const anthropic = new Anthropic();
     const prompt = buildPrompt(permits, weather);
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 2000,
+      max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -208,41 +226,57 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the JSON response
-    let blogData: BlogContent;
+    let generated: GeneratedPosts;
     try {
-      blogData = JSON.parse(content.text);
+      generated = JSON.parse(content.text);
     } catch {
       console.error("Failed to parse Claude response:", content.text);
       throw new Error("Invalid JSON response from Claude");
     }
 
-    // Validate required fields
-    if (!blogData.title || !blogData.body) {
-      throw new Error("Missing required fields in blog content");
+    if (!generated.posts || !Array.isArray(generated.posts)) {
+      throw new Error("Invalid response structure - expected posts array");
     }
 
-    // 3. Create draft in Sanity
+    // 3. Create drafts in Sanity
     const dataSources: string[] = [];
     if (permits.length > 0) dataSources.push("Chicago Data Portal");
     if (weather) dataSources.push("OpenWeatherMap");
 
-    const doc = await sanityWriteClient.create({
-      _type: "blogPost",
-      title: blogData.title,
-      slug: { _type: "slug", current: slugify(blogData.title) },
-      excerpt: blogData.excerpt,
-      body: markdownToPortableText(blogData.body),
-      category: blogData.category,
-      dataSources,
-      generatedAt: new Date().toISOString(),
-    });
+    const createdDocs: Array<{ id: string; title: string }> = [];
+    const now = new Date();
 
-    console.log(`Created blog draft: ${doc._id}`);
+    for (let i = 0; i < generated.posts.length; i++) {
+      const post = generated.posts[i];
+
+      if (!post.title || !post.body) {
+        console.warn(`Skipping post ${i} - missing title or body`);
+        continue;
+      }
+
+      // Stagger publishedAt by a few hours for each post
+      const publishedAt = new Date(now.getTime() - i * 3 * 60 * 60 * 1000);
+
+      const doc = await sanityWriteClient.create({
+        _type: "blogPost",
+        title: post.title,
+        slug: { _type: "slug", current: slugify(post.title) },
+        excerpt: post.excerpt,
+        body: markdownToPortableText(post.body),
+        category: post.category,
+        publishedAt: publishedAt.toISOString(),
+        dataSources,
+        generatedAt: now.toISOString(),
+      });
+
+      createdDocs.push({ id: doc._id, title: post.title });
+      console.log(`Created blog draft: ${doc._id} - ${post.title}`);
+    }
 
     return NextResponse.json({
       success: true,
-      documentId: doc._id,
-      title: blogData.title,
+      count: createdDocs.length,
+      posts: createdDocs,
     });
   } catch (error) {
     console.error("Blog generation error:", error);
