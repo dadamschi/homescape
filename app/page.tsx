@@ -9,9 +9,5 @@ export const revalidate = 3600;
 export default async function HomePage() {
   const hero = await sanityFetch<HeroContent>(queries.heroContent);
 
-  return (
-    <div className="page">
-      <Hero hero={hero} />
-    </div>
-  );
+  return <Hero hero={hero} />;
 }
