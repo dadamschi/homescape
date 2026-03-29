@@ -29,16 +29,19 @@ app/
 ├── about/page.tsx     # Company info
 ├── testimonials/page.tsx
 ├── contact/page.tsx   # Lead capture form
-├── api/lead/route.ts  # Lead submission API
+├── api/lead/route.ts  # Lead submission → Resend email
+├── api/revalidate/route.ts  # On-demand cache busting
 ├── sitemap.ts         # Dynamic XML sitemap
-└── robots.ts          # robots.txt generation
+├── robots.ts          # robots.txt generation
+├── icon.svg           # Favicon
+└── apple-icon.svg     # Apple touch icon
 ```
 
 ### Data Layer
 - **Sanity CMS** — content fetched server-side via `lib/sanity.ts`
 - **GROQ queries** — defined in `lib/queries.ts`
 - **Zustand** — client state (theme, menu) in `lib/store.ts`
-- **Lead API** — `/api/lead` forwards to Google Sheets
+- **Lead API** — `/api/lead` sends email via Resend
 
 ### Key Files
 - `lib/sanity.ts` — Sanity client + urlFor helper
@@ -50,8 +53,8 @@ app/
 ### Components
 All components in `components/`:
 - `Hero.tsx` — Landing hero section (server component)
-- `ProjectsGrid.tsx` — Project portfolio (client component)
-- `ImageCarousel.tsx` — Image carousel (client component)
+- `ProjectsGrid.tsx` — Project portfolio with photo credits (client component)
+- `ImageCarousel.tsx` — Image carousel with photo credits (client component)
 - `ContactForm.tsx` — Lead capture form (client component)
 - `Nav.tsx`, `Footer.tsx` — Layout components
 - `QuickContact.tsx` — Floating contact drawer
@@ -64,7 +67,7 @@ Copy `.env.example` to `.env.local`:
 ```
 NEXT_PUBLIC_SANITY_PROJECT_ID=2omgdk67
 NEXT_PUBLIC_SANITY_DATASET=production
-GOOGLE_SHEETS_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+RESEND_API_KEY=re_xxxxx
 ```
 
 ## SEO/GEO Features

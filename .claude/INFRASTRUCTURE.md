@@ -12,7 +12,8 @@ Last updated: March 2026
 | CMS | Sanity.io | dadams.chi@gmail.com |
 | DNS | Cloudflare | Active |
 | Domain Registrar | GoDaddy | Client |
-| Email | Cloudflare Routing → Gmail | daveporter66@gmail.com |
+| Email (inbound) | Cloudflare Routing → Gmail | daveporter66@gmail.com |
+| Email (transactional) | Resend | Contact form notifications |
 | Source Control | GitHub | dadamschi/homescape |
 
 ---
@@ -59,12 +60,12 @@ margo.ns.cloudflare.com
 
 ### Environment Variables
 
-| Variable | Value |
-|---|---|
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | `2omgdk67` |
-| `NEXT_PUBLIC_SANITY_DATASET` | `production` |
-| `GOOGLE_SHEETS_URL` | *(server-side only, pending)* |
-| `REVALIDATION_SECRET` | *(optional, for on-demand cache busting)* |
+| Variable | Value | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | `2omgdk67` | Sanity CMS |
+| `NEXT_PUBLIC_SANITY_DATASET` | `production` | Sanity CMS |
+| `RESEND_API_KEY` | `re_...` | Contact form email |
+| `REVALIDATION_SECRET` | *(optional)* | On-demand cache busting |
 
 ### vercel.json
 
@@ -197,19 +198,42 @@ createClient({
 
 ---
 
-## Email — Cloudflare Routing
+## Email
+
+### Inbound — Cloudflare Routing
 
 **Routing:** `*@homescapeconstruction.com` → `daveporter66@gmail.com`
 
-See `EMAIL_AND_DOMAIN.md` for full email configuration details.
+Handles emails sent directly to info@homescapeconstruction.com.
+
+See `EMAIL_AND_DOMAIN.md` for full configuration details.
+
+### Outbound — Resend (transactional)
+
+**Service:** Resend (resend.com)
+**Purpose:** Send contact form submission notifications
+**From address:** `noreply@homescapeconstruction.com`
+**To address:** `info@homescapeconstruction.com`
+
+Contact form submissions POST to `/api/lead`, which uses Resend to email the lead details to info@homescapeconstruction.com (then routed to Gmail via Cloudflare).
 
 ---
 
-## Lead Capture
+## Lead Capture Flow
 
-Contact form submissions POST to `/api/lead`, which forwards to Google Sheets via Apps Script.
-
-**Pending:** Set up Google Apps Script web app and add `GOOGLE_SHEETS_URL` env var.
+```
+User submits contact form
+    ↓
+POST /api/lead
+    ↓
+Resend API sends email
+    ↓
+Email to info@homescapeconstruction.com
+    ↓
+Cloudflare routes to daveporter66@gmail.com
+    ↓
+Lead arrives in Gmail
+```
 
 ---
 
@@ -224,14 +248,20 @@ Contact form submissions POST to `/api/lead`, which forwards to Google Sheets vi
 - [x] Add XML sitemap generation
 - [x] Add on-demand revalidation API route
 - [x] Add photoCredit field to project images
+- [x] Set up Resend for contact form emails
+- [x] Add favicon (H with roof peak)
 
 ## Pending Tasks
 
 - [ ] Deploy Sanity Studio (`npx sanity deploy` from `/studio`)
-- [ ] Set up Google Apps Script lead capture + add `GOOGLE_SHEETS_URL` env var
 - [ ] Configure Gmail "Send As" for `info@homescapeconstruction.com`
 - [ ] Set up Sanity webhook for on-demand revalidation
 - [ ] Add `REVALIDATION_SECRET` to Vercel env vars
+
+## Recently Completed
+
+- [x] Verify domain in Resend (DNS records added to Cloudflare)
+- [x] Add `RESEND_API_KEY` to Vercel environment variables
 
 ---
 
@@ -259,6 +289,6 @@ cd studio && npm run dev   # http://localhost:3333
 ```
 NEXT_PUBLIC_SANITY_PROJECT_ID=2omgdk67
 NEXT_PUBLIC_SANITY_DATASET=production
-GOOGLE_SHEETS_URL=         # add after Apps Script deploy
-REVALIDATION_SECRET=       # optional, for webhook auth
+RESEND_API_KEY=re_xxxxx      # Get from resend.com
+REVALIDATION_SECRET=         # Optional, for webhook auth
 ```
