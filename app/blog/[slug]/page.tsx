@@ -36,8 +36,6 @@ function renderPortableText(blocks: BlogPost["body"]) {
     if (block._type !== "block") return null;
 
     const text = block.children?.map((child) => child.text).join("") || "";
-    console.log('text', text)
-    console.log('block', block)
 
     const headingStyle = {
       fontWeight: 700,
