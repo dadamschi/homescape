@@ -23,13 +23,12 @@ export default async function BlogPage() {
     }}>
       <section style={{
         textAlign: "center",
-        marginBottom: "3rem",
         padding: "2rem 0",
       }}>
         <h1 style={{
           fontSize: "2.5rem",
           fontWeight: 700,
-          margin: "0 0 1rem 0",
+          margin: "20px 0 1rem 0",
           color: "var(--text-primary, #1a1a1a)",
         }}>
           Construction Insights

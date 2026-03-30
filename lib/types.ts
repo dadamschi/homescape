@@ -20,6 +20,7 @@ export interface Project {
   images: SanityImage[];
   year: number;
   location: string;
+  virtualTour?: string;
 }
 
 export interface Testimonial {

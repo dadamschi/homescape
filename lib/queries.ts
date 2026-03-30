@@ -9,7 +9,8 @@ export const queries = {
     image,
     images,
     year,
-    location
+    location,
+    virtualTour
   }`,
 
   testimonials: `*[_type == "testimonial"] {

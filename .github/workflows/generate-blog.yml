@@ -14,4 +14,4 @@ jobs:
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "${{ secrets.SITE_URL }}/api/generate-blog"
+            "${{ vars.SITE_URL }}/api/generate-blog"

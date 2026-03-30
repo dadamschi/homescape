@@ -101,6 +101,12 @@ export const project = defineType({
       title: "Location",
       type: "string",
     }),
+    defineField({
+      name: "virtualTour",
+      title: "Virtual Tour URL",
+      type: "url",
+      description: "Link to a 360° virtual tour (e.g., Matterport, Zillow 3D Home).",
+    }),
   ],
   preview: {
     select: { title: "title", subtitle: "location" },
