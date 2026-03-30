@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface LeadData {
   name: string;
   email: string;
@@ -32,6 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email notification
+    const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: "Homescape Website <noreply@homescapeconstruction.com>",
       to: "info@homescapeconstruction.com",
