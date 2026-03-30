@@ -219,31 +219,15 @@ Programmatic pages targeting local search.
 
 ## Content Guidelines
 
-### Voice & Tone
-- Professional but approachable
-- Authoritative without being condescending
-- Chicago-specific references (neighborhoods, weather, local context)
-- Actionable advice over generic tips
+**Blog-specific guidelines:** See [`app/api/generate-blog/CLAUDE.md`](../app/api/generate-blog/CLAUDE.md) for detailed voice, tone, E-E-A-T, and GEO requirements used by the automated blog generation.
 
-### SEO Best Practices
+### General SEO Best Practices (All Pages)
 - One H1 per page
 - Descriptive H2s with keywords
 - Internal links to related content
 - External links to authoritative sources (city sites, code references)
 - Schema markup (Article, HowTo, FAQ)
-
-### E-E-A-T Signals
-- **Experience:** Reference Homescape projects, years in business
-- **Expertise:** Cite specific codes, regulations, industry standards
-- **Authoritativeness:** Link to official sources, use accurate data
-- **Trustworthiness:** Clear contact info, license numbers, transparent pricing
-
-### AI Citation Optimization (GEO)
-- Direct answers to common questions
-- Structured data for easy extraction
-- Clear section headings
-- Factual, citable statistics
-- Updated dates visible
+- Updated dates visible on content pages
 
 ---
 

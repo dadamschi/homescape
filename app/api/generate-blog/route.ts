@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFileSync } from "fs";
+import { join } from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import { sanityWriteClient } from "@/lib/sanity";
+
+// Read content guidelines from CLAUDE.md at module load
+const CONTENT_GUIDELINES = readFileSync(
+  join(process.cwd(), "app/api/generate-blog/CLAUDE.md"),
+  "utf-8"
+);
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -138,45 +146,34 @@ function buildPrompt(permits: ChicagoPermit[], weather: WeatherData | null): str
     ? `## Current Chicago Weather\nConditions: ${weather.weather[0]?.description || "N/A"}\nTemperature: ${Math.round(weather.main.temp)}°F (feels like ${Math.round(weather.main.feels_like)}°F)\nHumidity: ${weather.main.humidity}%`
     : "Weather data unavailable.";
 
-  return `You are a content writer for Homescape Construction, a Chicago-based residential and commercial construction company serving Chicagoland since 2010.
+  return `You are a content writer for Homescape Construction. Follow the guidelines below exactly.
 
-Based on the following Chicago data, generate 2-3 SHORT, FOCUSED blog posts. Each post should cover ONE specific topic.
+---
+
+# CONTENT GUIDELINES
+
+${CONTENT_GUIDELINES}
+
+---
+
+# CURRENT DATA
+
+Use this real-time data to inform your posts:
 
 ${permitsSection}
 
 ${weatherSection}
 
-Generate 2-3 separate blog posts. Each should be focused on a SINGLE topic:
+---
+
+# YOUR TASK
+
+Generate 2-3 separate blog posts based on the data above. Each should be focused on a SINGLE topic:
 - One post about a specific neighborhood or permit trend (if permit data available)
 - One post with seasonal/weather-related construction tips (if weather data available)
 - One post with practical homeowner advice
 
-Respond ONLY with valid JSON (no markdown code blocks):
-{
-  "posts": [
-    {
-      "title": "Specific, engaging title",
-      "excerpt": "1-2 sentence hook",
-      "body": "Short article in markdown (200-350 words). One clear topic. Use ## for one section heading max.",
-      "category": "Chicago Trends"
-    },
-    {
-      "title": "...",
-      "excerpt": "...",
-      "body": "...",
-      "category": "Seasonal Tips"
-    }
-  ]
-}
-
-Categories: "Chicago Trends", "Seasonal Tips", "Industry News", "Home Improvement"
-
-Guidelines:
-- Keep each post SHORT and focused (200-350 words)
-- One main idea per post
-- Actionable advice for Chicago homeowners
-- Professional but approachable tone
-- Reference specific neighborhoods when relevant`;
+Respond ONLY with valid JSON (no markdown code blocks).`;
 }
 
 export async function POST(request: NextRequest) {
