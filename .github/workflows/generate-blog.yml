@@ -3,12 +3,13 @@ name: Generate Blog Posts
 on:
   schedule:
     # Every Sunday at 9am Chicago time (3pm UTC during CDT, 4pm UTC during CST)
-    - cron: '0 15 * * 0'
+    - cron: '0 15 * * 0/2'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   generate:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - name: Trigger blog generation
         run: |
