@@ -52,7 +52,7 @@ export const queries = {
     heroImages
   }`,
 
-  blogPosts: `*[_type == "blogPost" && defined(publishedAt)] | order(publishedAt desc) {
+  blogPosts: `*[_type == "blogPost" && defined(publishedAt) && publishedAt <= now()] | order(publishedAt desc) {
     _id,
     title,
     slug,
