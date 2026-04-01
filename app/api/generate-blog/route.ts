@@ -42,6 +42,14 @@ interface GeneratedPosts {
   posts: BlogPost[];
 }
 
+interface ExistingPost {
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  publishedAt: string;
+}
+
 // Fetch recent Chicago building permits
 async function fetchChicagoPermits(): Promise<ChicagoPermit[]> {
   try {
@@ -53,6 +61,25 @@ async function fetchChicagoPermits(): Promise<ChicagoPermit[]> {
     return res.json();
   } catch (error) {
     console.error("Failed to fetch permits:", error);
+    return [];
+  }
+}
+
+// Fetch existing blog posts for internal linking
+async function fetchExistingPosts(): Promise<ExistingPost[]> {
+  try {
+    const posts = await sanityWriteClient.fetch<ExistingPost[]>(
+      `*[_type == "blogPost" && defined(publishedAt) && !(_id in path("drafts.**"))] | order(publishedAt desc) [0...20] {
+        title,
+        "slug": slug.current,
+        category,
+        excerpt,
+        publishedAt
+      }`
+    );
+    return posts;
+  } catch (error) {
+    console.error("Failed to fetch existing posts:", error);
     return [];
   }
 }
@@ -75,20 +102,93 @@ async function fetchWeather(): Promise<WeatherData | null> {
   }
 }
 
-// Convert markdown to Portable Text blocks
+// Link mark definition type
+interface LinkMarkDef {
+  _type: "link";
+  _key: string;
+  href: string;
+}
+
+// Convert markdown to Portable Text blocks with link support
 function markdownToPortableText(markdown: string) {
   const blocks: Array<{
     _type: "block";
     _key: string;
     style: string;
     children: Array<{ _type: "span"; _key: string; text: string; marks: string[] }>;
-    markDefs: Array<unknown>;
+    markDefs: LinkMarkDef[];
   }> = [];
 
   const lines = markdown.split("\n");
   let keyCounter = 0;
 
-  const generateKey = () => `block-${keyCounter++}`;
+  const generateKey = () => `key-${keyCounter++}`;
+
+  // Parse inline markdown links and return children array with markDefs
+  function parseLineWithLinks(text: string): {
+    children: Array<{ _type: "span"; _key: string; text: string; marks: string[] }>;
+    markDefs: LinkMarkDef[];
+  } {
+    const children: Array<{ _type: "span"; _key: string; text: string; marks: string[] }> = [];
+    const markDefs: LinkMarkDef[] = [];
+
+    // Regex to match markdown links: [text](url)
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+      // Add text before the link
+      if (match.index > lastIndex) {
+        children.push({
+          _type: "span",
+          _key: generateKey(),
+          text: text.slice(lastIndex, match.index),
+          marks: [],
+        });
+      }
+
+      // Create link mark definition
+      const linkKey = generateKey();
+      markDefs.push({
+        _type: "link",
+        _key: linkKey,
+        href: match[2],
+      });
+
+      // Add linked text with mark reference
+      children.push({
+        _type: "span",
+        _key: generateKey(),
+        text: match[1],
+        marks: [linkKey],
+      });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after last link
+    if (lastIndex < text.length) {
+      children.push({
+        _type: "span",
+        _key: generateKey(),
+        text: text.slice(lastIndex),
+        marks: [],
+      });
+    }
+
+    // If no links found, return the whole text as a single span
+    if (children.length === 0) {
+      children.push({
+        _type: "span",
+        _key: generateKey(),
+        text,
+        marks: [],
+      });
+    }
+
+    return { children, markDefs };
+  }
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -109,19 +209,14 @@ function markdownToPortableText(markdown: string) {
       text = trimmed.slice(2);
     }
 
+    const { children, markDefs } = parseLineWithLinks(text);
+
     blocks.push({
       _type: "block",
       _key: generateKey(),
       style,
-      children: [
-        {
-          _type: "span",
-          _key: generateKey(),
-          text,
-          marks: [],
-        },
-      ],
-      markDefs: [],
+      children,
+      markDefs,
     });
   }
 
@@ -137,7 +232,11 @@ function slugify(text: string): string {
 }
 
 // Build the prompt for Claude - generates multiple focused posts
-function buildPrompt(permits: ChicagoPermit[], weather: WeatherData | null): string {
+function buildPrompt(
+  permits: ChicagoPermit[],
+  weather: WeatherData | null,
+  existingPosts: ExistingPost[]
+): string {
   const permitsSection = permits.length > 0
     ? `## Recent Chicago Building Permits\n${JSON.stringify(permits.slice(0, 8), null, 2)}`
     : "No recent permit data available.";
@@ -145,6 +244,10 @@ function buildPrompt(permits: ChicagoPermit[], weather: WeatherData | null): str
   const weatherSection = weather
     ? `## Current Chicago Weather\nConditions: ${weather.weather[0]?.description || "N/A"}\nTemperature: ${Math.round(weather.main.temp)}°F (feels like ${Math.round(weather.main.feels_like)}°F)\nHumidity: ${weather.main.humidity}%`
     : "Weather data unavailable.";
+
+  const existingPostsSection = existingPosts.length > 0
+    ? `## Existing Blog Posts (for internal linking)\nLink to relevant posts using markdown format: [anchor text](/blog/slug)\n\n${existingPosts.map(p => `- "${p.title}" (/blog/${p.slug}) - ${p.category}`).join("\n")}`
+    : "No existing posts available for linking.";
 
   return `You are a content writer for Homescape Construction. Follow the guidelines below exactly.
 
@@ -164,6 +267,8 @@ ${permitsSection}
 
 ${weatherSection}
 
+${existingPostsSection}
+
 ---
 
 # YOUR TASK
@@ -172,6 +277,18 @@ Generate 2-3 separate blog posts based on the data above. Each should be focused
 - One post about a specific neighborhood or permit trend (if permit data available)
 - One post with seasonal/weather-related construction tips (if weather data available)
 - One post with practical homeowner advice
+
+**Internal Linking Requirements:**
+- Each post should prioritize including 1-2 internal links to relevant existing posts from the list above
+- Use natural anchor text that fits the sentence context
+- Format: [descriptive anchor text](/blog/slug)
+- Only link to posts that are genuinely related to the content
+
+**External Linking Requirements:**
+- Include 1-2 external links to authoritative sources when relevant
+- Prefer .gov and .org sources (Chicago Building Dept, EPA, ENERGY STAR, etc.)
+- See the approved sources list in the content guidelines
+- Format: [descriptive anchor text](https://full-url)
 
 Respond ONLY with valid JSON (no markdown code blocks).`;
 }
@@ -199,17 +316,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 1. Fetch Chicago data in parallel
-    const [permits, weather] = await Promise.all([
+    // 1. Fetch Chicago data and existing posts in parallel
+    const [permits, weather, existingPosts] = await Promise.all([
       fetchChicagoPermits(),
       fetchWeather(),
+      fetchExistingPosts(),
     ]);
 
-    console.log(`Fetched ${permits.length} permits, weather: ${weather ? "yes" : "no"}`);
+    console.log(`Fetched ${permits.length} permits, weather: ${weather ? "yes" : "no"}, ${existingPosts.length} existing posts`);
 
     // 2. Generate blog posts with Claude
     const anthropic = new Anthropic();
-    const prompt = buildPrompt(permits, weather);
+    const prompt = buildPrompt(permits, weather, existingPosts);
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",

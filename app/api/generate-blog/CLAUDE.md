@@ -101,6 +101,49 @@ Build these into content naturally:
 - Be specific: "5 Signs" beats "Signs", "2024" beats "This Year"
 - Front-load keywords: "Chicago Permit Trends" not "Trends in Permits in Chicago"
 
+### Internal Linking (Critical for SEO)
+Every post will prioritize including 1-2 internal links to existing blog posts. This:
+- Distributes page authority across the site
+- Keeps readers engaged longer
+- Signals topical depth to search engines
+- Helps AI systems understand content relationships
+
+**How to link:**
+- Use markdown format: `[anchor text](/blog/slug)`
+- Anchor text should be descriptive, not "click here" or "read more"
+- Link where it flows naturally in the sentence
+- Prioritize linking to related topics (e.g., a post about winter prep links to a post about foundation care)
+
+**Good example:**
+"Chicago's freeze-thaw cycles can wreak havoc on foundations. If you're noticing cracks, it may be time to [schedule a foundation inspection](/blog/signs-your-chicago-bungalow-needs-tuckpointing) before winter hits."
+
+**Bad example:**
+"For more information, [click here](/blog/some-post)."
+
+### External Linking (Builds E-E-A-T)
+Include 1-2 external links to authoritative sources when relevant. This signals expertise and provides value.
+
+**Approved External Sources:**
+
+| Category | Source | URL | Use When |
+|----------|--------|-----|----------|
+| Permits | Chicago Building Dept | `https://www.chicago.gov/city/en/depts/bldgs.html` | Discussing permits, inspections, code compliance |
+| Zoning | Chicago Zoning Map | `https://gisapps.chicago.gov/ZoningMap/` | Zoning questions, ADU eligibility, setbacks |
+| Data | Chicago Data Portal | `https://data.cityofchicago.org` | Citing permit trends, neighborhood stats |
+| Energy | ENERGY STAR | `https://www.energystar.gov` | Energy efficiency, appliances, insulation |
+| Lead Safety | EPA Lead Program | `https://www.epa.gov/lead` | Pre-1978 homes, renovation safety |
+| Weather | NWS Chicago | `https://www.weather.gov/lot/` | Seasonal timing, weather impacts |
+| Rebates | ComEd | `https://www.comed.com/rebates` | Energy upgrades, electrical work |
+| Rebates | Peoples Gas | `https://www.peoplesgasdelivery.com` | HVAC, water heaters, insulation |
+| Historic | Chicago Bungalow Assoc | `https://www.chicagobungalow.org` | Bungalow-specific content |
+| Historic | Landmarks Illinois | `https://www.landmarks.org` | Historic districts, preservation |
+
+**How to link externally:**
+- Use markdown: `[Chicago Building Department](https://www.chicago.gov/city/en/depts/bldgs.html)`
+- Link on descriptive text, not URLs
+- Only link when it genuinely adds value
+- Prefer .gov and .org sources for authority
+
 ## Data Source Attribution
 
 Generated posts include a `dataSources` field. Use this data authentically:
@@ -135,6 +178,8 @@ Before including a post, verify:
 - [ ] Actionable advice or useful insight provided
 - [ ] No generic filler content
 - [ ] Word count is 200-350
+- [ ] Contains 1-2 internal links to existing posts (if posts are available)
+- [ ] Contains 1-2 external links to authoritative sources (when relevant)
 
 ## Example Post Structure
 
@@ -147,11 +192,11 @@ Chicago contractors typically book March-May projects in January. With temperatu
 
 Here's what to do if you're planning a spring project:
 
-**Book now, not later.** Even if you're targeting a May start, get on a contractor's calendar by early March. Permit processing in Chicago takes 4-6 weeks for most residential work.
+**Book now, not later.** Even if you're targeting a May start, get on a contractor's calendar by early March. [Permit processing in Chicago](/blog/chicago-permit-timeline-what-to-expect) takes 4-6 weeks for most residential work.
 
-**Consider the shoulder season.** Late October through early December often has contractor availability and decent weather for interior work. Foundation and exterior projects need ground temps above 40°F, but kitchens and bathrooms are fair game.
+**Consider the shoulder season.** Late October through early December often has contractor availability and decent weather for interior work. Foundation and exterior projects need ground temps above 40°F, but [kitchens and bathrooms](/blog/best-time-for-interior-renovations-chicago) are fair game year-round.
 
-**Check permit status weekly.** The Chicago building department's online portal lets you track your application. Don't assume no news is good news.
+**Check permit status weekly.** The [Chicago Building Department](https://www.chicago.gov/city/en/depts/bldgs.html) online portal lets you track your application. Don't assume no news is good news.
 
 The mild winter won't last, but the competition for contractors will persist through fall.
 ```
