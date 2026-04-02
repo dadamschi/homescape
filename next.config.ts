@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/experience",
+        destination: "/about",
+        permanent: true, // 308 redirect - preserves SEO value
+      },
+    ];
+  },
 };
 
 export default nextConfig;
