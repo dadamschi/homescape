@@ -17,11 +17,6 @@ export const location = defineType({
       type: "string",
     }),
     defineField({
-      name: "phone",
-      title: "Phone",
-      type: "string",
-    }),
-    defineField({
       name: "hours",
       title: "Hours",
       type: "string",

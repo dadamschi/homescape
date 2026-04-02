@@ -179,7 +179,6 @@ async function audit() {
       _id,
       name,
       address,
-      phone,
       hours
     }
   `);
@@ -193,7 +192,6 @@ async function audit() {
     for (const loc of locations) {
       const issues = [];
       if (!loc.address) issues.push("Missing address");
-      if (!loc.phone) issues.push("Missing phone");
       if (!loc.hours) issues.push("Missing hours");
 
       if (issues.length > 0) {

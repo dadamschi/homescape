@@ -49,18 +49,22 @@ export default async function ContactPage() {
                     {Icons.mapPin} {loc.address}
                   </div>
                 )}
-                <div className="section-label" style={{ marginBottom: "0.75rem" }}>
-                  Call Us
-                </div>
-                <div className="location-detail hide-mobile">
-                  {Icons.phone} {loc.phone}
-                </div>
-                <a
-                  className="location-detail show-mobile-only"
-                  href={`tel:${loc.phone.replace(/\D/g, "")}`}
-                >
-                  {Icons.phone} {loc.phone}
-                </a>
+                {siteSettings.phone && (
+                  <>
+                    <div className="section-label" style={{ marginBottom: "0.75rem" }}>
+                      Call Us
+                    </div>
+                    <div className="location-detail hide-mobile">
+                      {Icons.phone} {siteSettings.phone}
+                    </div>
+                    <a
+                      className="location-detail show-mobile-only"
+                      href={`tel:${siteSettings.phone.replace(/\D/g, "")}`}
+                    >
+                      {Icons.phone} {siteSettings.phone}
+                    </a>
+                  </>
+                )}
                 {siteSettings.email && (
                   <div style={{ marginTop: "2rem" }}>
                     <div className="section-label" style={{ marginBottom: "0.75rem" }}>

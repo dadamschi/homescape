@@ -25,7 +25,6 @@ export const queries = {
     _id,
     name,
     address,
-    phone,
     hours
   }`,
 

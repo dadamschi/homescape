@@ -36,8 +36,8 @@ const ctaVariations = [
   },
   {
     headline: "Hire a Home Addition Contractor You Can Trust",
-    subheadline: "A+ BBB Rating • 20+ Years Experience",
-    body: "With 20+ years of experience, an A+ BBB rating, and a portfolio of successful additions across Chicago and the suburbs, Homescape Construction is the home addition contractor Chicagoland homeowners trust. Contact us today for a free estimate.",
+    subheadline: "20+ Years Experience",
+    body: "With 20+ years of experience and a portfolio of successful additions across Chicago and the suburbs, Homescape Construction is the home addition contractor Chicagoland homeowners trust. Contact us today for a free estimate.",
     buttonText: "Get Free Estimate",
   },
   {
