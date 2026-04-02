@@ -69,6 +69,7 @@ export const queries = {
     excerpt,
     body,
     category,
+    serviceType,
     dataSources
   }`,
 

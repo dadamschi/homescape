@@ -10,6 +10,12 @@ const CONTENT_GUIDELINES = readFileSync(
   "utf-8"
 );
 
+// Read SEO keyword clusters and targeting guidance
+const SEO_KEYWORDS = readFileSync(
+  join(process.cwd(), "app/api/generate-blog/seo-implementation-guide.md"),
+  "utf-8"
+);
+
 const CRON_SECRET = process.env.CRON_SECRET;
 
 // Types for external APIs
@@ -256,6 +262,12 @@ function buildPrompt(
 # CONTENT GUIDELINES
 
 ${CONTENT_GUIDELINES}
+
+---
+
+# SEO KEYWORD TARGETING
+
+${SEO_KEYWORDS}
 
 ---
 

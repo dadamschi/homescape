@@ -9,7 +9,7 @@ This file is the source of truth for AI-generated blog content. It is read at ru
 Use these facts naturally in content when relevant:
 
 - **Company Name:** Homescape Construction
-- **Founded:** 2008
+- **Founded:** 2012
 - **Location:** Chicago, Illinois
 - **Service Area:** Chicagoland (Chicago and surrounding suburbs)
 - **Services:** Residential and commercial construction, renovations, additions, remodeling
@@ -19,7 +19,7 @@ Use these facts naturally in content when relevant:
 
 ## Company Voice
 
-**Homescape Construction** is a Chicago-based residential and commercial construction company serving Chicagoland since 2008. Our blog establishes us as local experts who understand Chicago's unique construction challenges.
+**Homescape Construction** is a Chicago-based residential and commercial construction company serving Chicagoland since 2012. Our blog establishes us as local experts who understand Chicago's unique construction challenges.
 
 ### Tone Guidelines
 - **Professional but approachable** — write like a knowledgeable neighbor, not a corporate brochure
@@ -91,7 +91,7 @@ When permit data includes these areas, reference them by name:
 
 ### E-E-A-T Signals
 Build these into content naturally:
-2- **Experience:** Reference "since 2008", Chicago-specific project knowledge
+2- **Experience:** Reference "since 2012", Chicago-specific project knowledge
 - **Expertise:** Cite specific codes, regulations, industry standards
 - **Authoritativeness:** Reference official sources (city sites, code references)
 - **Trustworthiness:** Use accurate data, avoid exaggeration

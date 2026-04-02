@@ -114,7 +114,8 @@ export interface BlogPost {
   publishedAt?: string;
   excerpt?: string;
   body?: PortableTextBlock[];
-  category?: string;
+  category?: "Chicago Trends" | "Seasonal Tips" | "Industry News" | "Home Improvement" | "Service";
+  serviceType?: "Custom Home Building" | "Kitchen Remodeling" | "Bathroom Remodeling" | "Home Additions" | "Basement Finishing" | "ADU & Garage Conversions" | "General Contracting";
   dataSources?: string[];
   generatedAt?: string;
 }

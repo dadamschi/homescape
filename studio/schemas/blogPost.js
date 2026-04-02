@@ -46,8 +46,27 @@ export const blogPost = defineType({
           "Seasonal Tips",
           "Industry News",
           "Home Improvement",
+          "Service",
         ],
       },
+    }),
+    defineField({
+      name: "serviceType",
+      title: "Service Type",
+      type: "string",
+      description: "Required when category is 'Service' - used for Service schema markup",
+      options: {
+        list: [
+          "Custom Home Building",
+          "Kitchen Remodeling",
+          "Bathroom Remodeling",
+          "Home Additions",
+          "Basement Finishing",
+          "ADU & Garage Conversions",
+          "General Contracting",
+        ],
+      },
+      hidden: ({ parent }) => parent?.category !== "Service",
     }),
     defineField({
       name: "dataSources",

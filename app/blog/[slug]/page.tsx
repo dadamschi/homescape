@@ -4,6 +4,7 @@ import Link from "next/link";
 import { sanityFetch } from "@/lib/sanity";
 import { queries } from "@/lib/queries";
 import type { BlogPost } from "@/lib/types";
+import BlogCTA from "@/components/BlogCTA";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -176,6 +177,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           {renderPortableText(post.body)}
         </div>
 
+        {/* CTA Module - rotates copy automatically */}
+        <BlogCTA />
+
         {post.dataSources && post.dataSources.length > 0 && (
           <footer style={{
             marginTop: "3rem",
@@ -214,6 +218,29 @@ export default async function BlogPostPage({ params }: PageProps) {
           }),
         }}
       />
+
+      {/* JSON-LD for Service schema (only for Service category pages) */}
+      {post.category === "Service" && post.serviceType && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Service",
+              name: `${post.serviceType} in Chicago`,
+              description: post.excerpt,
+              provider: {
+                "@id": "https://www.homescapeconstruction.com/#organization",
+              },
+              areaServed: {
+                "@type": "State",
+                name: "Illinois",
+              },
+              url: `https://www.homescapeconstruction.com/blog/${post.slug.current}`,
+            }),
+          }}
+        />
+      )}
     </main>
   );
 }
