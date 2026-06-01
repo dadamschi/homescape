@@ -221,7 +221,19 @@ export default async function BlogPostPage({ params }: PageProps) {
             &larr; Back to Blog
           </Link>
 
-          {post.categories && post.categories.length > 0 && (
+          <h1
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              lineHeight: 1.2,
+              margin: "0 0 1rem 0",
+              color: "var(--text-primary, #1a1a1a)",
+            }}
+          >
+            {post.title}
+          </h1>
+
+{post.categories && post.categories.length > 0 && (
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
               {post.categories.map((cat) => {
                 const colors = categoryColors[cat] || defaultColor;
@@ -245,19 +257,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               })}
             </div>
           )}
-
-          <h1
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              lineHeight: 1.2,
-              margin: "0 0 1rem 0",
-              color: "var(--text-primary, #1a1a1a)",
-            }}
-          >
-            {post.title}
-          </h1>
-
+          
           <div
             style={{
               display: "flex",

@@ -135,17 +135,26 @@ Lincoln Park, Lakeview, Wicker Park, Logan Square, Hyde Park, Bucktown, Pilsen, 
 - Use descriptive anchor text: [kitchen remodeling costs](/blog/kitchen-remodeling-costs-chicago)
 - NOT: [click here](/blog/some-post)
 
-### External Links (1-2 per post)
+### External Links (REQUIRED — 1-2 per post)
 
-Authoritative sources only:
+**Every post MUST include at least one external link to an authoritative source.** This builds E-E-A-T credibility and helps AI systems cite the content.
 
-| Source                | URL                                              | Use When             |
-| --------------------- | ------------------------------------------------ | -------------------- |
-| Chicago Building Dept | https://www.chicago.gov/city/en/depts/bldgs.html | Permits, inspections |
-| Chicago Data Portal   | https://data.cityofchicago.org                   | Permit trends, stats |
-| ENERGY STAR           | https://www.energystar.gov                       | Energy efficiency    |
-| EPA Lead Program      | https://www.epa.gov/lead                         | Pre-1978 homes       |
-| NWS Chicago           | https://www.weather.gov/lot/                     | Seasonal timing      |
+Use these exact URLs (copy/paste — do not modify):
+
+| Source                | URL                                              | Use When                        |
+| --------------------- | ------------------------------------------------ | ------------------------------- |
+| Chicago Building Dept | https://www.chicago.gov/city/en/depts/bldgs.html | Permits, codes, inspections     |
+| Chicago Data Portal   | https://data.cityofchicago.org                   | Permit stats, neighborhood data |
+| ENERGY STAR           | https://www.energystar.gov                       | Energy efficiency, appliances   |
+| EPA Lead Program      | https://www.epa.gov/lead                         | Pre-1978 homes, lead paint      |
+| NWS Chicago           | https://www.weather.gov/lot/                     | Seasonal timing, weather        |
+| Illinois DCEO         | https://dceo.illinois.gov                        | Energy rebates, incentives      |
+
+**Format examples:**
+
+- "Check the [Chicago Department of Buildings](https://www.chicago.gov/city/en/depts/bldgs.html) for current permit requirements."
+- "The [EPA's lead safety guidelines](https://www.epa.gov/lead) apply to any home built before 1978."
+- "[ENERGY STAR certified windows](https://www.energystar.gov) can reduce heating costs by 10-15%."
 
 ---
 
@@ -192,13 +201,18 @@ Respond with valid JSON only — no markdown code blocks. Generate exactly ONE p
 
 ## Quality Gates (Self-Check Before Output)
 
+**HARD REQUIREMENTS (post will be rejected without these):**
+
 - [ ] Lead answer in first 40-60 words
 - [ ] Meets word count minimum for post type
+- [ ] FAQ section with 3-5 Q&As
+- [ ] **At least ONE external link** to .gov/.org source from the table above
+- [ ] No banned slop phrases
+- [ ] No fabricated data
+
+**Should include:**
+
 - [ ] At least one question-phrased H2
 - [ ] At least one table, list, or concrete number
-- [ ] FAQ section with 3-5 Q&As
 - [ ] Chicago-specific detail (neighborhood, permit, weather)
 - [ ] 1-2 internal links (if existing posts available)
-- [ ] 1-2 external links to authoritative sources
-- [ ] No banned slop phrases
-- [ ] No fabricated data — ranges labeled as estimates
