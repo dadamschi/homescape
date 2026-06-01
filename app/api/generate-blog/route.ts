@@ -31,6 +31,37 @@ interface ChicagoPermit {
   estimated_cost?: string;
 }
 
+interface EnergyBenchmark {
+  address: string;
+  chicago_energy_rating: string;
+  gross_floor_area_buildings_sq_ft: string;
+  community_area: string;
+  data_year: string;
+  zip_code: string;
+}
+
+interface Landmark {
+  name: string;
+  address: string;
+  date_built: string;
+  architect: string;
+  landmark: string; // designation date
+}
+
+interface ZoningDistrict {
+  zone_class: string;
+  zone_type: string;
+}
+
+// Data source rotation - cycles through: permits, energy, landmarks, zoning
+type DataSourceType = "permits" | "energy" | "landmarks" | "zoning";
+
+function getWeeklyDataSource(): DataSourceType {
+  const sources: DataSourceType[] = ["permits", "energy", "landmarks", "zoning"];
+  const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  return sources[weekNumber % sources.length];
+}
+
 interface WeatherData {
   weather: Array<{ main: string; description: string }>;
   main: { temp: number; feels_like: number; humidity: number };
@@ -99,6 +130,51 @@ async function fetchExistingPosts(): Promise<ExistingPost[]> {
     return posts;
   } catch (error) {
     console.error("Failed to fetch existing posts:", error);
+    return [];
+  }
+}
+
+// Fetch Chicago Energy Benchmarking data
+async function fetchEnergyBenchmarks(): Promise<EnergyBenchmark[]> {
+  try {
+    const res = await fetch(
+      "https://data.cityofchicago.org/resource/xq83-jr8c.json?$limit=15&$order=data_year%20DESC&$where=chicago_energy_rating%20IS%20NOT%20NULL",
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) throw new Error(`Energy API error: ${res.status}`);
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch energy data:", error);
+    return [];
+  }
+}
+
+// Fetch Chicago Landmarks data (Individual Landmarks dataset)
+async function fetchLandmarks(): Promise<Landmark[]> {
+  try {
+    const res = await fetch(
+      "https://data.cityofchicago.org/resource/uct4-hrvh.json?$limit=15&$order=landmark%20DESC",
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) throw new Error(`Landmarks API error: ${res.status}`);
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch landmarks:", error);
+    return [];
+  }
+}
+
+// Fetch Chicago Zoning district types
+async function fetchZoningTypes(): Promise<ZoningDistrict[]> {
+  try {
+    const res = await fetch(
+      "https://data.cityofchicago.org/resource/nifi-zqag.json?$select=zone_class,zone_type&$group=zone_class,zone_type&$limit=30",
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) throw new Error(`Zoning API error: ${res.status}`);
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch zoning:", error);
     return [];
   }
 }
@@ -250,25 +326,82 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-// Build the prompt for Claude - generates multiple focused posts
-function buildPrompt(
-  permits: ChicagoPermit[],
-  weather: WeatherData | null,
-  existingPosts: ExistingPost[]
-): string {
-  const permitsSection =
-    permits.length > 0
-      ? `## Recent Chicago Building Permits\n${JSON.stringify(permits.slice(0, 8), null, 2)}`
-      : "No recent permit data available.";
+// Data source context for prompts
+interface DataContext {
+  type: DataSourceType;
+  permits: ChicagoPermit[];
+  energy: EnergyBenchmark[];
+  landmarks: Landmark[];
+  zoning: ZoningDistrict[];
+  weather: WeatherData | null;
+  existingPosts: ExistingPost[];
+}
 
-  const weatherSection = weather
-    ? `## Current Chicago Weather\nConditions: ${weather.weather[0]?.description || "N/A"}\nTemperature: ${Math.round(weather.main.temp)}°F (feels like ${Math.round(weather.main.feels_like)}°F)\nHumidity: ${weather.main.humidity}%`
-    : "Weather data unavailable.";
+// Build the prompt for Claude based on rotating data source
+function buildPrompt(ctx: DataContext): string {
+  // Format primary data section based on this week's source
+  let primaryDataSection = "";
+  let topicGuidance = "";
+
+  switch (ctx.type) {
+    case "permits":
+      primaryDataSection =
+        ctx.permits.length > 0
+          ? `## This Week's Focus: Recent Chicago Building Permits\n${JSON.stringify(ctx.permits.slice(0, 8), null, 2)}`
+          : "No recent permit data available.";
+      topicGuidance = `Write about PERMITS and COSTS. Use the real permit data above to discuss:
+- What specific permit costs tell homeowners about project pricing
+- Permit processing times and what to expect
+- Work types and scope from real permits`;
+      break;
+
+    case "energy":
+      primaryDataSection =
+        ctx.energy.length > 0
+          ? `## This Week's Focus: Chicago Energy Benchmarking Data\n${JSON.stringify(ctx.energy.slice(0, 10), null, 2)}`
+          : "No energy benchmarking data available.";
+      topicGuidance = `Write about ENERGY EFFICIENCY. Use the benchmarking data to discuss:
+- How building size affects energy costs in Chicago
+- Chicago Energy Rating and what it means for homeowners
+- Energy upgrades that improve ratings (insulation, windows, HVAC)`;
+      break;
+
+    case "landmarks":
+      primaryDataSection =
+        ctx.landmarks.length > 0
+          ? `## This Week's Focus: Chicago Landmarks\n${JSON.stringify(ctx.landmarks.slice(0, 10), null, 2)}`
+          : "No landmarks data available.";
+      topicGuidance = `Write about HISTORIC RENOVATION. Use the landmarks data to discuss:
+- Renovating in Chicago's landmark districts
+- Permit and approval requirements for historic properties
+- Balancing preservation with modern updates
+- Working with the Chicago Landmarks Commission`;
+      break;
+
+    case "zoning":
+      primaryDataSection =
+        ctx.zoning.length > 0
+          ? `## This Week's Focus: Chicago Zoning Districts\nCommon zone classes: ${ctx.zoning
+              .slice(0, 15)
+              .map((z) => z.zone_class)
+              .join(", ")}`
+          : "No zoning data available.";
+      topicGuidance = `Write about ZONING and ADUs. Explain zoning classifications and discuss:
+- What RS (residential single-family) vs RM (residential multi-family) means
+- Zoning requirements for ADUs, coach houses, and additions
+- How to check zoning before starting a project
+- Common zoning variances homeowners request`;
+      break;
+  }
+
+  const weatherSection = ctx.weather
+    ? `## Current Chicago Weather\nConditions: ${ctx.weather.weather[0]?.description || "N/A"}\nTemperature: ${Math.round(ctx.weather.main.temp)}°F (feels like ${Math.round(ctx.weather.main.feels_like)}°F)\nHumidity: ${ctx.weather.main.humidity}%`
+    : "";
 
   const existingPostsSection =
-    existingPosts.length > 0
-      ? `## Existing Blog Posts (for internal linking)\nLink to relevant posts using markdown format: [anchor text](/blog/slug)\n\n${existingPosts.map((p) => `- "${p.title}" (/blog/${p.slug}) - ${p.categories?.join(", ") || "General"}`).join("\n")}`
-      : "No existing posts available for linking.";
+    ctx.existingPosts.length > 0
+      ? `## Existing Blog Posts (for internal linking)\nLink to relevant posts using markdown format: [anchor text](/blog/slug)\n\n${ctx.existingPosts.map((p) => `- "${p.title}" (/blog/${p.slug}) - ${p.categories?.join(", ") || "General"}`).join("\n")}`
+      : "";
 
   return `You are a content writer for Homescape Construction. Follow the guidelines below exactly.
 
@@ -288,9 +421,7 @@ ${SEO_KEYWORDS}
 
 # CURRENT DATA
 
-Use this real-time data to inform your posts:
-
-${permitsSection}
+${primaryDataSection}
 
 ${weatherSection}
 
@@ -300,17 +431,15 @@ ${existingPostsSection}
 
 # YOUR TASK
 
+${topicGuidance}
+
 Generate ONE high-quality blog post (NOT thin content). The post MUST:
-- Meet the word count minimums: 700-1,200 words for evergreen/service posts, 500-800 for permit-data posts
+- Meet the word count minimums: 700-1,200 words for evergreen/service posts, 500-800 for data-driven posts
 - Include a lead answer (40-60 words) directly under the title
 - Have at least one H2 phrased as a natural question
 - Include an FAQ section with 3-5 Q&As (40-60 words each answer)
+- Reference specific data points from the Chicago data above
 - End with a single soft CTA
-
-Topic priority (pick ONE based on available data):
-1. SERVICE post about a common remodeling topic (kitchen, bathroom, basement, additions) - HIGHEST priority
-2. PERMIT-DATA post with specific real permit numbers from the data above
-3. SEASONAL post tied to Chicago weather conditions
 
 **Internal Linking Requirements:**
 - Each post should include 1-2 internal links to relevant existing posts from the list above
@@ -342,20 +471,35 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 1. Fetch Chicago data and existing posts in parallel
-    const [permits, weather, existingPosts] = await Promise.all([
-      fetchChicagoPermits(),
+    // 1. Determine this week's data source
+    const dataSourceType = getWeeklyDataSource();
+    console.log(`This week's data source: ${dataSourceType}`);
+
+    // 2. Fetch all data sources in parallel (we need weather and existing posts regardless)
+    const [permits, energy, landmarks, zoning, weather, existingPosts] = await Promise.all([
+      dataSourceType === "permits" ? fetchChicagoPermits() : Promise.resolve([]),
+      dataSourceType === "energy" ? fetchEnergyBenchmarks() : Promise.resolve([]),
+      dataSourceType === "landmarks" ? fetchLandmarks() : Promise.resolve([]),
+      dataSourceType === "zoning" ? fetchZoningTypes() : Promise.resolve([]),
       fetchWeather(),
       fetchExistingPosts(),
     ]);
 
     console.log(
-      `Fetched ${permits.length} permits, weather: ${weather ? "yes" : "no"}, ${existingPosts.length} existing posts`
+      `Data source: ${dataSourceType}, weather: ${weather ? "yes" : "no"}, ${existingPosts.length} existing posts`
     );
 
-    // 2. Generate blog posts with Claude
+    // 3. Generate blog posts with Claude
     const anthropic = new Anthropic();
-    const prompt = buildPrompt(permits, weather, existingPosts);
+    const prompt = buildPrompt({
+      type: dataSourceType,
+      permits,
+      energy,
+      landmarks,
+      zoning,
+      weather,
+      existingPosts,
+    });
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -381,9 +525,15 @@ export async function POST(request: NextRequest) {
       throw new Error("Invalid response structure - expected posts array");
     }
 
-    // 3. Create drafts in Sanity
-    const dataSources: string[] = [];
-    if (permits.length > 0) dataSources.push("Chicago Data Portal");
+    // 4. Create drafts in Sanity
+    const dataSources: string[] = ["Chicago Data Portal"];
+    const dataSourceLabels: Record<DataSourceType, string> = {
+      permits: "Building Permits",
+      energy: "Energy Benchmarking",
+      landmarks: "Historic Landmarks",
+      zoning: "Zoning Districts",
+    };
+    dataSources.push(dataSourceLabels[dataSourceType]);
     if (weather) dataSources.push("OpenWeatherMap");
 
     const createdDocs: Array<{ id: string; title: string }> = [];
