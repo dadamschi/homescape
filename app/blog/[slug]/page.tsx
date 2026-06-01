@@ -54,6 +54,46 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
+// Render Portable Text children with link support
+function renderChildren(
+  children: Array<{ _key: string; _type: string; text: string; marks?: string[] }> | undefined,
+  markDefs: Array<{ _key: string; _type: string; href?: string }> | undefined
+) {
+  if (!children) return null;
+
+  return children.map((child) => {
+    if (!child.marks || child.marks.length === 0) {
+      return <span key={child._key}>{child.text}</span>;
+    }
+
+    // Find link marks
+    const linkMark = child.marks.find((mark) => {
+      const def = markDefs?.find((d) => d._key === mark);
+      return def?._type === "link";
+    });
+
+    if (linkMark) {
+      const linkDef = markDefs?.find((d) => d._key === linkMark);
+      const href = linkDef?.href || "#";
+      const isExternal = href.startsWith("http");
+
+      return (
+        <a
+          key={child._key}
+          href={href}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+          style={{ color: "#6b9b1c", textDecoration: "underline" }}
+        >
+          {child.text}
+        </a>
+      );
+    }
+
+    return <span key={child._key}>{child.text}</span>;
+  });
+}
+
 // Render Portable Text blocks
 function renderPortableText(blocks: BlogPost["body"]) {
   if (!blocks) return null;
@@ -61,6 +101,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
   return blocks.map((block) => {
     if (block._type !== "block") return null;
 
+    const children = renderChildren(block.children, block.markDefs);
     const text = block.children?.map((child) => child.text).join("") || "";
 
     const headingStyle = {
@@ -72,7 +113,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
       case "h1":
         return (
           <h1 key={block._key} style={{ fontSize: "2rem", margin: "2rem 0 1rem", ...headingStyle }}>
-            {text}
+            {children}
           </h1>
         );
       case "h2":
@@ -81,7 +122,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
             key={block._key}
             style={{ fontSize: "1.5rem", margin: "2rem 0 1rem", ...headingStyle }}
           >
-            {text}
+            {children}
           </h2>
         );
       case "h3":
@@ -90,7 +131,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
             key={block._key}
             style={{ fontSize: "1.25rem", margin: "1.5rem 0 0.75rem", fontWeight: 600 }}
           >
-            {text}
+            {children}
           </h3>
         );
       case "h4":
@@ -99,7 +140,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
             key={block._key}
             style={{ fontSize: "1.1rem", margin: "1.25rem 0 0.5rem", fontWeight: 600 }}
           >
-            {text}
+            {children}
           </h4>
         );
       case "blockquote":
@@ -114,7 +155,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
               fontStyle: "italic",
             }}
           >
-            {text}
+            {children}
           </blockquote>
         );
       default:
@@ -128,7 +169,7 @@ function renderPortableText(blocks: BlogPost["body"]) {
         }
         return (
           <p key={block._key} style={{ margin: "0 0 1.25rem 0" }}>
-            {text}
+            {children}
           </p>
         );
     }
