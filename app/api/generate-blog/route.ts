@@ -332,12 +332,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Jitter: cron fires daily at 10am CT, but only run ~1/7 of the time
-  // This makes posting happen roughly once per week on a random day
-  if (Math.random() > 1 / 7) {
-    return NextResponse.json({ skipped: true, reason: "jitter" });
-  }
-
   // Check for required API keys
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
