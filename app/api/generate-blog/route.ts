@@ -37,11 +37,24 @@ interface WeatherData {
   name: string;
 }
 
+interface BlogPostFAQ {
+  question: string;
+  answer: string;
+}
+
+interface BlogPostSEO {
+  metaTitle: string;
+  metaDescription: string;
+}
+
 interface BlogPost {
   title: string;
   excerpt: string;
   body: string;
-  category: "Chicago Trends" | "Seasonal Tips" | "Industry News" | "Home Improvement";
+  categories: string[];
+  serviceType?: string | null;
+  seo: BlogPostSEO;
+  faq: BlogPostFAQ[];
 }
 
 interface GeneratedPosts {
@@ -51,7 +64,7 @@ interface GeneratedPosts {
 interface ExistingPost {
   title: string;
   slug: string;
-  category: string;
+  categories: string[];
   excerpt: string;
   publishedAt: string;
 }
@@ -78,7 +91,7 @@ async function fetchExistingPosts(): Promise<ExistingPost[]> {
       `*[_type == "blogPost" && defined(publishedAt) && !(_id in path("drafts.**"))] | order(publishedAt desc) [0...20] {
         title,
         "slug": slug.current,
-        category,
+        categories,
         excerpt,
         publishedAt
       }`
@@ -243,17 +256,19 @@ function buildPrompt(
   weather: WeatherData | null,
   existingPosts: ExistingPost[]
 ): string {
-  const permitsSection = permits.length > 0
-    ? `## Recent Chicago Building Permits\n${JSON.stringify(permits.slice(0, 8), null, 2)}`
-    : "No recent permit data available.";
+  const permitsSection =
+    permits.length > 0
+      ? `## Recent Chicago Building Permits\n${JSON.stringify(permits.slice(0, 8), null, 2)}`
+      : "No recent permit data available.";
 
   const weatherSection = weather
     ? `## Current Chicago Weather\nConditions: ${weather.weather[0]?.description || "N/A"}\nTemperature: ${Math.round(weather.main.temp)}°F (feels like ${Math.round(weather.main.feels_like)}°F)\nHumidity: ${weather.main.humidity}%`
     : "Weather data unavailable.";
 
-  const existingPostsSection = existingPosts.length > 0
-    ? `## Existing Blog Posts (for internal linking)\nLink to relevant posts using markdown format: [anchor text](/blog/slug)\n\n${existingPosts.map(p => `- "${p.title}" (/blog/${p.slug}) - ${p.category}`).join("\n")}`
-    : "No existing posts available for linking.";
+  const existingPostsSection =
+    existingPosts.length > 0
+      ? `## Existing Blog Posts (for internal linking)\nLink to relevant posts using markdown format: [anchor text](/blog/slug)\n\n${existingPosts.map((p) => `- "${p.title}" (/blog/${p.slug}) - ${p.categories?.join(", ") || "General"}`).join("\n")}`
+      : "No existing posts available for linking.";
 
   return `You are a content writer for Homescape Construction. Follow the guidelines below exactly.
 
@@ -285,21 +300,26 @@ ${existingPostsSection}
 
 # YOUR TASK
 
-Generate 2-3 separate blog posts based on the data above. Each should be focused on a SINGLE topic:
-- One post about a specific neighborhood or permit trend (if permit data available)
-- One post with seasonal/weather-related construction tips (if weather data available)
-- One post with practical homeowner advice
+Generate ONE high-quality blog post (NOT thin content). The post MUST:
+- Meet the word count minimums: 700-1,200 words for evergreen/service posts, 500-800 for permit-data posts
+- Include a lead answer (40-60 words) directly under the title
+- Have at least one H2 phrased as a natural question
+- Include an FAQ section with 3-5 Q&As (40-60 words each answer)
+- End with a single soft CTA
+
+Topic priority (pick ONE based on available data):
+1. SERVICE post about a common remodeling topic (kitchen, bathroom, basement, additions) - HIGHEST priority
+2. PERMIT-DATA post with specific real permit numbers from the data above
+3. SEASONAL post tied to Chicago weather conditions
 
 **Internal Linking Requirements:**
-- Each post should prioritize including 1-2 internal links to relevant existing posts from the list above
+- Each post should include 1-2 internal links to relevant existing posts from the list above
 - Use natural anchor text that fits the sentence context
 - Format: [descriptive anchor text](/blog/slug)
-- Only link to posts that are genuinely related to the content
 
 **External Linking Requirements:**
-- Include 1-2 external links to authoritative sources when relevant
+- Include 1-2 external links to authoritative sources
 - Prefer .gov and .org sources (Chicago Building Dept, EPA, ENERGY STAR, etc.)
-- See the approved sources list in the content guidelines
 - Format: [descriptive anchor text](https://full-url)
 
 Respond ONLY with valid JSON (no markdown code blocks).`;
@@ -312,19 +332,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Jitter: cron fires hourly 9am-5pm CT, but only run ~1/9 of the time
+  // This makes posting time appear random within the business day window
+  if (Math.random() > 1 / 9) {
+    return NextResponse.json({ skipped: true, reason: "jitter" });
+  }
+
   // Check for required API keys
   if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY not configured" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
   }
 
   if (!process.env.SANITY_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "SANITY_WRITE_TOKEN not configured" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "SANITY_WRITE_TOKEN not configured" }, { status: 500 });
   }
 
   try {
@@ -335,7 +355,9 @@ export async function POST(request: NextRequest) {
       fetchExistingPosts(),
     ]);
 
-    console.log(`Fetched ${permits.length} permits, weather: ${weather ? "yes" : "no"}, ${existingPosts.length} existing posts`);
+    console.log(
+      `Fetched ${permits.length} permits, weather: ${weather ? "yes" : "no"}, ${existingPosts.length} existing posts`
+    );
 
     // 2. Generate blog posts with Claude
     const anthropic = new Anthropic();
@@ -381,17 +403,22 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Stagger publishedAt by a few hours for each post
-      const publishedAt = new Date(now.getTime() - i * 3 * 60 * 60 * 1000);
-
+      // Create as draft (no publishedAt) - editor reviews and publishes manually
       const doc = await sanityWriteClient.create({
         _type: "blogPost",
         title: post.title,
         slug: { _type: "slug", current: slugify(post.title) },
+        author: "Dave Adams",
         excerpt: post.excerpt,
         body: markdownToPortableText(post.body),
-        category: post.category,
-        publishedAt: publishedAt.toISOString(),
+        categories: post.categories,
+        serviceType: post.serviceType || null,
+        seo: post.seo,
+        faq: post.faq?.map((item, idx) => ({
+          _key: `faq-${idx}`,
+          question: item.question,
+          answer: item.answer,
+        })),
         dataSources,
         generatedAt: now.toISOString(),
       });

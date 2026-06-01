@@ -25,9 +25,12 @@ export function urlFor(source: SanityImage) {
   return builder.image(source);
 }
 
-// Type-safe data fetcher
+// Type-safe data fetcher with Next.js cache integration
 export async function sanityFetch<T>(query: string, params?: Record<string, unknown>): Promise<T> {
-  return sanityClient.fetch(query, params);
+  return sanityClient.fetch(query, params, {
+    // Bypass CDN cache for fresher data, use Next.js caching instead
+    cache: "no-store",
+  });
 }
 
 // Write client for mutations (server-only)

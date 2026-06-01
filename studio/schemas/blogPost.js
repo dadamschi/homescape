@@ -19,6 +19,12 @@ export const blogPost = defineType({
       validation: (R) => R.required(),
     }),
     defineField({
+      name: "author",
+      title: "Author",
+      type: "string",
+      description: "Author name for E-E-A-T (e.g., 'Dave / Homescape Construction')",
+    }),
+    defineField({
       name: "publishedAt",
       title: "Published At",
       type: "datetime",
@@ -28,25 +34,61 @@ export const blogPost = defineType({
       title: "Excerpt",
       type: "text",
       rows: 3,
-      description: "Brief summary for listings and SEO",
+      description: "Brief summary for listings and meta description (max 160 chars)",
+      validation: (R) => R.max(160),
+    }),
+    defineField({
+      name: "mainImage",
+      title: "Main Image",
+      type: "image",
+      options: { hotspot: true },
+      fields: [
+        defineField({
+          name: "alt",
+          title: "Alt Text",
+          type: "string",
+          description: "Describe the image for accessibility and SEO",
+        }),
+      ],
     }),
     defineField({
       name: "body",
       title: "Body",
       type: "array",
-      of: [{ type: "block" }],
+      of: [
+        { type: "block" },
+        {
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: "alt",
+              title: "Alt Text",
+              type: "string",
+            }),
+            defineField({
+              name: "caption",
+              title: "Caption",
+              type: "string",
+            }),
+          ],
+        },
+      ],
     }),
     defineField({
-      name: "category",
-      title: "Category",
-      type: "string",
+      name: "categories",
+      title: "Categories",
+      type: "array",
+      of: [{ type: "string" }],
       options: {
         list: [
-          "Chicago Trends",
-          "Seasonal Tips",
-          "Industry News",
-          "Home Improvement",
-          "Service",
+          { title: "Remodeling", value: "Remodeling" },
+          { title: "Permits", value: "Permits" },
+          { title: "Seasonal", value: "Seasonal" },
+          { title: "Projects", value: "Projects" },
+          { title: "Guides", value: "Guides" },
+          { title: "Chicago Trends", value: "Chicago Trends" },
+          { title: "Home Improvement", value: "Home Improvement" },
         ],
       },
     }),
@@ -54,7 +96,7 @@ export const blogPost = defineType({
       name: "serviceType",
       title: "Service Type",
       type: "string",
-      description: "Required when category is 'Service' - used for Service schema markup",
+      description: "For Service schema markup when post is about a specific service",
       options: {
         list: [
           "Custom Home Building",
@@ -66,7 +108,59 @@ export const blogPost = defineType({
           "General Contracting",
         ],
       },
-      hidden: ({ parent }) => parent?.category !== "Service",
+    }),
+    defineField({
+      name: "seo",
+      title: "SEO",
+      type: "object",
+      fields: [
+        defineField({
+          name: "metaTitle",
+          title: "Meta Title",
+          type: "string",
+          description:
+            "Override title for search results (include one ' | Homescape Construction' suffix)",
+          validation: (R) => R.max(60),
+        }),
+        defineField({
+          name: "metaDescription",
+          title: "Meta Description",
+          type: "text",
+          rows: 2,
+          description: "Description for search results (max 160 chars)",
+          validation: (R) => R.max(160),
+        }),
+      ],
+    }),
+    defineField({
+      name: "faq",
+      title: "FAQ",
+      type: "array",
+      description: "FAQ items for FAQPage schema markup (3-5 recommended)",
+      of: [
+        {
+          type: "object",
+          fields: [
+            defineField({
+              name: "question",
+              title: "Question",
+              type: "string",
+              validation: (R) => R.required(),
+            }),
+            defineField({
+              name: "answer",
+              title: "Answer",
+              type: "text",
+              rows: 3,
+              description: "40-60 words recommended",
+              validation: (R) => R.required(),
+            }),
+          ],
+          preview: {
+            select: { title: "question" },
+          },
+        },
+      ],
     }),
     defineField({
       name: "dataSources",
@@ -83,6 +177,10 @@ export const blogPost = defineType({
     }),
   ],
   preview: {
-    select: { title: "title", subtitle: "category" },
+    select: {
+      title: "title",
+      subtitle: "author",
+      media: "mainImage",
+    },
   },
 });

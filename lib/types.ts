@@ -105,16 +105,48 @@ export interface PortableTextBlock {
   }>;
 }
 
+export interface BlogPostFAQ {
+  question: string;
+  answer: string;
+}
+
+export interface BlogPostSEO {
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export type BlogCategory =
+  | "Remodeling"
+  | "Permits"
+  | "Seasonal"
+  | "Projects"
+  | "Guides"
+  | "Chicago Trends"
+  | "Home Improvement";
+
+export type BlogServiceType =
+  | "Custom Home Building"
+  | "Kitchen Remodeling"
+  | "Bathroom Remodeling"
+  | "Home Additions"
+  | "Basement Finishing"
+  | "ADU & Garage Conversions"
+  | "General Contracting";
+
 export interface BlogPost {
   _id: string;
   _type: "blogPost";
   title: string;
   slug: { current: string };
+  author?: string;
   publishedAt?: string;
   excerpt?: string;
+  mainImage?: SanityImage;
   body?: PortableTextBlock[];
-  category?: "Chicago Trends" | "Seasonal Tips" | "Industry News" | "Home Improvement" | "Service";
-  serviceType?: "Custom Home Building" | "Kitchen Remodeling" | "Bathroom Remodeling" | "Home Additions" | "Basement Finishing" | "ADU & Garage Conversions" | "General Contracting";
+  categories?: BlogCategory[];
+  serviceType?: BlogServiceType;
+  seo?: BlogPostSEO;
+  faq?: BlogPostFAQ[];
   dataSources?: string[];
   generatedAt?: string;
 }

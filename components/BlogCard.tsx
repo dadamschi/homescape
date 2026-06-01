@@ -1,10 +1,28 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { BlogPost } from "@/lib/types";
+import { urlFor } from "@/lib/sanity";
+
+// Category color mapping for consistent pill styling
+const categoryColors: Record<string, { bg: string; text: string }> = {
+  Remodeling: { bg: "rgba(107, 155, 28, 0.15)", text: "#5a8a15" },
+  Permits: { bg: "rgba(59, 130, 246, 0.15)", text: "#2563eb" },
+  Seasonal: { bg: "rgba(245, 158, 11, 0.15)", text: "#b45309" },
+  Projects: { bg: "rgba(139, 92, 246, 0.15)", text: "#7c3aed" },
+  Guides: { bg: "rgba(20, 184, 166, 0.15)", text: "#0d9488" },
+  "Chicago Trends": { bg: "rgba(239, 68, 68, 0.15)", text: "#dc2626" },
+  "Home Improvement": { bg: "rgba(236, 72, 153, 0.15)", text: "#db2777" },
+};
+
+const defaultColor = { bg: "rgba(107, 155, 28, 0.1)", text: "#6b9b1c" };
 
 interface BlogCardProps {
-  post: Pick<BlogPost, "_id" | "title" | "slug" | "publishedAt" | "excerpt" | "category">;
+  post: Pick<
+    BlogPost,
+    "_id" | "title" | "slug" | "publishedAt" | "excerpt" | "categories" | "mainImage" | "author"
+  >;
 }
 
 export function BlogCard({ post }: BlogCardProps) {
@@ -35,24 +53,44 @@ export function BlogCard({ post }: BlogCardProps) {
       }}
     >
       <Link href={`/blog/${post.slug.current}`} style={{ textDecoration: "none" }}>
+        {post.mainImage?.asset && (
+          <div style={{ position: "relative", width: "100%", height: "200px" }}>
+            <Image
+              src={urlFor(post.mainImage).width(600).height(400).url()}
+              alt={post.mainImage.alt || post.title}
+              fill
+              style={{ objectFit: "cover" }}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        )}
         <div style={{ padding: "1.5rem" }}>
-          {post.category && (
-            <span
-              style={{
-                display: "inline-block",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                color: "#6b9b1c",
-                background: "rgba(107, 155, 28, 0.1)",
-                padding: "0.25rem 0.75rem",
-                borderRadius: "4px",
-                marginBottom: "0.75rem",
-              }}
+          {post.categories && post.categories.length > 0 && (
+            <div
+              style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.75rem" }}
             >
-              {post.category}
-            </span>
+              {post.categories.map((cat) => {
+                const colors = categoryColors[cat] || defaultColor;
+                return (
+                  <span
+                    key={cat}
+                    style={{
+                      display: "inline-block",
+                      fontSize: "0.7rem",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: colors.text,
+                      background: colors.bg,
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "9999px",
+                    }}
+                  >
+                    {cat}
+                  </span>
+                );
+              })}
+            </div>
           )}
           <h2
             style={{

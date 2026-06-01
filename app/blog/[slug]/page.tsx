@@ -1,10 +1,24 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { sanityFetch } from "@/lib/sanity";
+import Image from "next/image";
+import { sanityFetch, urlFor } from "@/lib/sanity";
 import { queries } from "@/lib/queries";
 import type { BlogPost } from "@/lib/types";
 import BlogCTA from "@/components/BlogCTA";
+
+// Category color mapping for consistent pill styling
+const categoryColors: Record<string, { bg: string; text: string }> = {
+  Remodeling: { bg: "rgba(107, 155, 28, 0.15)", text: "#5a8a15" },
+  Permits: { bg: "rgba(59, 130, 246, 0.15)", text: "#2563eb" },
+  Seasonal: { bg: "rgba(245, 158, 11, 0.15)", text: "#b45309" },
+  Projects: { bg: "rgba(139, 92, 246, 0.15)", text: "#7c3aed" },
+  Guides: { bg: "rgba(20, 184, 166, 0.15)", text: "#0d9488" },
+  "Chicago Trends": { bg: "rgba(239, 68, 68, 0.15)", text: "#dc2626" },
+  "Home Improvement": { bg: "rgba(236, 72, 153, 0.15)", text: "#db2777" },
+};
+
+const defaultColor = { bg: "rgba(107, 155, 28, 0.1)", text: "#6b9b1c" };
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -18,9 +32,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "Post Not Found | Homescape Construction" };
   }
 
+  const title = post.seo?.metaTitle || `${post.title} | Homescape Construction`;
+  const description =
+    post.seo?.metaDescription ||
+    post.excerpt ||
+    `Read about ${post.title} on the Homescape Construction blog.`;
+
   return {
-    title: `${post.title} | Homescape Construction`,
-    description: post.excerpt || `Read about ${post.title} on the Homescape Construction blog.`,
+    title,
+    description,
+    openGraph: post.mainImage?.asset
+      ? {
+          images: [{ url: urlFor(post.mainImage).width(1200).height(630).url() }],
+        }
+      : undefined,
   };
 }
 
@@ -45,31 +70,67 @@ function renderPortableText(blocks: BlogPost["body"]) {
 
     switch (block.style) {
       case "h1":
-        return <h1 key={block._key} style={{ fontSize: "2rem", margin: "2rem 0 1rem", ...headingStyle }}>{text}</h1>;
+        return (
+          <h1 key={block._key} style={{ fontSize: "2rem", margin: "2rem 0 1rem", ...headingStyle }}>
+            {text}
+          </h1>
+        );
       case "h2":
-        return <h2 key={block._key} style={{ fontSize: "1.5rem", margin: "2rem 0 1rem", ...headingStyle }}>{text}</h2>;
+        return (
+          <h2
+            key={block._key}
+            style={{ fontSize: "1.5rem", margin: "2rem 0 1rem", ...headingStyle }}
+          >
+            {text}
+          </h2>
+        );
       case "h3":
-        return <h3 key={block._key} style={{ fontSize: "1.25rem", margin: "1.5rem 0 0.75rem", fontWeight: 600 }}>{text}</h3>;
+        return (
+          <h3
+            key={block._key}
+            style={{ fontSize: "1.25rem", margin: "1.5rem 0 0.75rem", fontWeight: 600 }}
+          >
+            {text}
+          </h3>
+        );
       case "h4":
-        return <h4 key={block._key} style={{ fontSize: "1.1rem", margin: "1.25rem 0 0.5rem", fontWeight: 600 }}>{text}</h4>;
+        return (
+          <h4
+            key={block._key}
+            style={{ fontSize: "1.1rem", margin: "1.25rem 0 0.5rem", fontWeight: 600 }}
+          >
+            {text}
+          </h4>
+        );
       case "blockquote":
         return (
-          <blockquote key={block._key} style={{
-            margin: "1.5rem 0",
-            padding: "1rem 1.5rem",
-            borderLeft: "4px solid #6b9b1c",
-            background: "rgba(107, 155, 28, 0.05)",
-            fontStyle: "italic",
-          }}>
+          <blockquote
+            key={block._key}
+            style={{
+              margin: "1.5rem 0",
+              padding: "1rem 1.5rem",
+              borderLeft: "4px solid #6b9b1c",
+              background: "rgba(107, 155, 28, 0.05)",
+              fontStyle: "italic",
+            }}
+          >
             {text}
           </blockquote>
         );
       default:
-        if (text.startsWith('**') && text.endsWith('**')) {
+        if (text.startsWith("**") && text.endsWith("**")) {
           const noStarText = text.replaceAll("*", "");
-          return <p key={block._key} style={{ margin: "0 0 1.25rem 0", fontWeight: "bold" }}>{noStarText}</p>;
+          return (
+            <p key={block._key} style={{ margin: "0 0 1.25rem 0", fontWeight: "bold" }}>
+              {noStarText}
+            </p>
+          );
         }
-        return <p key={block._key} style={{ margin: "0 0 1.25rem 0" }}>{text}</p>;
+        return (
+          <p key={block._key} style={{ margin: "0 0 1.25rem 0" }}>
+            {text}
+          </p>
+        );
     }
   });
 }
@@ -91,17 +152,21 @@ export default async function BlogPostPage({ params }: PageProps) {
     : null;
 
   return (
-    <main style={{
-      maxWidth: "800px",
-      margin: "0 auto",
-      padding: "2rem 1rem 4rem",
-    }}>
+    <main
+      style={{
+        maxWidth: "800px",
+        margin: "0 auto",
+        padding: "2rem 1rem 4rem",
+      }}
+    >
       <article>
-        <header style={{
-          marginBottom: "2rem",
-          paddingBottom: "2rem",
-          borderBottom: "1px solid var(--border, #eee)",
-        }}>
+        <header
+          style={{
+            marginBottom: "2rem",
+            paddingBottom: "2rem",
+            borderBottom: "1px solid var(--border, #eee)",
+          }}
+        >
           <Link
             href="/blog"
             style={{
@@ -115,65 +180,115 @@ export default async function BlogPostPage({ params }: PageProps) {
             &larr; Back to Blog
           </Link>
 
-          {post.category && (
-            <span style={{
-              display: "block",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              color: "#6b9b1c",
-              background: "rgba(107, 155, 28, 0.1)",
-              padding: "0.25rem 0.75rem",
-              borderRadius: "4px",
-              marginBottom: "1rem",
-              width: "fit-content",
-            }}>
-              {post.category}
-            </span>
+          {post.categories && post.categories.length > 0 && (
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+              {post.categories.map((cat) => {
+                const colors = categoryColors[cat] || defaultColor;
+                return (
+                  <span
+                    key={cat}
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: colors.text,
+                      background: colors.bg,
+                      padding: "0.3rem 0.85rem",
+                      borderRadius: "9999px",
+                    }}
+                  >
+                    {cat}
+                  </span>
+                );
+              })}
+            </div>
           )}
 
-          <h1 style={{
-            fontSize: "2.25rem",
-            fontWeight: 700,
-            lineHeight: 1.2,
-            margin: "0 0 1rem 0",
-            color: "var(--text-primary, #1a1a1a)",
-          }}>
+          <h1
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              lineHeight: 1.2,
+              margin: "0 0 1rem 0",
+              color: "var(--text-primary, #1a1a1a)",
+            }}
+          >
             {post.title}
           </h1>
 
-          {formattedDate && (
-            <time
-              dateTime={post.publishedAt}
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              alignItems: "center",
+              marginBottom: "1rem",
+              flexWrap: "wrap",
+            }}
+          >
+            {formattedDate && (
+              <time
+                dateTime={post.publishedAt}
+                style={{
+                  fontSize: "0.9rem",
+                  color: "var(--text-muted, #999)",
+                }}
+              >
+                {formattedDate}
+              </time>
+            )}
+            {post.author && (
+              <>
+                <span style={{ color: "var(--text-muted, #999)" }}>·</span>
+                <span style={{ fontSize: "0.9rem", color: "var(--text-muted, #999)" }}>
+                  {post.author}
+                </span>
+              </>
+            )}
+          </div>
+
+          {post.mainImage?.asset && (
+            <div
               style={{
-                display: "block",
-                fontSize: "0.9rem",
-                color: "var(--text-muted, #999)",
-                marginBottom: "1rem",
+                position: "relative",
+                width: "100%",
+                height: "400px",
+                marginBottom: "1.5rem",
+                borderRadius: "8px",
+                overflow: "hidden",
               }}
             >
-              {formattedDate}
-            </time>
+              <Image
+                src={urlFor(post.mainImage).width(800).height(400).url()}
+                alt={post.mainImage.alt || post.title}
+                fill
+                style={{ objectFit: "cover" }}
+                priority
+              />
+            </div>
           )}
 
           {post.excerpt && (
-            <p style={{
-              fontSize: "1.15rem",
-              color: "var(--text-secondary, #555)",
-              lineHeight: 1.6,
-              margin: 0,
-            }}>
+            <p
+              style={{
+                fontSize: "1.15rem",
+                color: "var(--text-secondary, #555)",
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
               {post.excerpt}
             </p>
           )}
         </header>
 
-        <div style={{
-          fontSize: "1.05rem",
-          lineHeight: 1.8,
-          color: "var(--text-primary, #333)",
-        }}>
+        <div
+          style={{
+            fontSize: "1.05rem",
+            lineHeight: 1.8,
+            color: "var(--text-primary, #333)",
+          }}
+        >
           {renderPortableText(post.body)}
         </div>
 
@@ -181,15 +296,19 @@ export default async function BlogPostPage({ params }: PageProps) {
         <BlogCTA />
 
         {post.dataSources && post.dataSources.length > 0 && (
-          <footer style={{
-            marginTop: "3rem",
-            paddingTop: "1.5rem",
-            borderTop: "1px solid var(--border, #eee)",
-          }}>
-            <p style={{
-              fontSize: "0.85rem",
-              color: "var(--text-muted, #999)",
-            }}>
+          <footer
+            style={{
+              marginTop: "3rem",
+              paddingTop: "1.5rem",
+              borderTop: "1px solid var(--border, #eee)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--text-muted, #999)",
+              }}
+            >
               <strong>Data sources:</strong> {post.dataSources.join(", ")}
             </p>
           </footer>
@@ -206,10 +325,22 @@ export default async function BlogPostPage({ params }: PageProps) {
             headline: post.title,
             description: post.excerpt,
             datePublished: post.publishedAt,
-            author: {
-              "@type": "Organization",
-              name: "Homescape Construction",
-            },
+            ...(post.mainImage?.asset && {
+              image: urlFor(post.mainImage).width(1200).height(630).url(),
+            }),
+            author: post.author
+              ? {
+                  "@type": "Person",
+                  name: post.author.split("/")[0].trim(),
+                  worksFor: {
+                    "@type": "Organization",
+                    name: "Homescape Construction",
+                  },
+                }
+              : {
+                  "@type": "Organization",
+                  name: "Homescape Construction",
+                },
             publisher: {
               "@type": "Organization",
               name: "Homescape Construction",
@@ -219,8 +350,29 @@ export default async function BlogPostPage({ params }: PageProps) {
         }}
       />
 
-      {/* JSON-LD for Service schema (only for Service category pages) */}
-      {post.category === "Service" && post.serviceType && (
+      {/* JSON-LD for FAQPage schema (if FAQ content exists) */}
+      {post.faq && post.faq.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: post.faq.map((item) => ({
+                "@type": "Question",
+                name: item.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: item.answer,
+                },
+              })),
+            }),
+          }}
+        />
+      )}
+
+      {/* JSON-LD for Service schema (only for service-type posts) */}
+      {post.serviceType && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -55,20 +55,26 @@ export const queries = {
     _id,
     title,
     slug,
+    author,
     publishedAt,
     excerpt,
-    category
+    mainImage,
+    categories
   }`,
 
   blogPostBySlug: `*[_type == "blogPost" && slug.current == $slug][0] {
     _id,
     title,
     slug,
+    author,
     publishedAt,
     excerpt,
+    mainImage,
     body,
-    category,
+    categories,
     serviceType,
+    seo,
+    faq,
     dataSources
   }`,
 
