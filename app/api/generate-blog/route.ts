@@ -332,9 +332,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Jitter: cron fires hourly 9am-5pm CT, but only run ~1/9 of the time
-  // This makes posting time appear random within the business day window
-  if (Math.random() > 1 / 9) {
+  // Jitter: cron fires daily at 10am CT, but only run ~1/7 of the time
+  // This makes posting happen roughly once per week on a random day
+  if (Math.random() > 1 / 7) {
     return NextResponse.json({ skipped: true, reason: "jitter" });
   }
 
