@@ -193,7 +193,7 @@ Respond with valid JSON only — no markdown code blocks. Generate exactly ONE p
 - `body`: Full markdown with H2 sections and FAQ at end
 - `categories`: Array of 1-2 category strings
 - `serviceType`: Only if post is about a specific service (Kitchen Remodeling, etc.)
-- `seo.metaTitle`: Include exactly ONE "| Homescape Construction" suffix
+- `seo.metaTitle`: 50-70 total chars, include exactly ONE "| Homescape Construction" suffix (suffix is 23 chars, so title portion should be 27-47 chars)
 - `seo.metaDescription`: Max 160 chars, include Chicago/location
 - `faq`: Array of 3-5 Q&A objects for FAQPage schema
 

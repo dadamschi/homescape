@@ -119,8 +119,8 @@ export const blogPost = defineType({
           title: "Meta Title",
           type: "string",
           description:
-            "Override title for search results (include one ' | Homescape Construction' suffix)",
-          validation: (R) => R.max(60),
+            "Override title for search results (include one ' | Homescape Construction' suffix, aim for 50-70 chars total)",
+          validation: (R) => R.min(40).max(70),
         }),
         defineField({
           name: "metaDescription",
