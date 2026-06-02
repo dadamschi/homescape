@@ -17,6 +17,8 @@ const SEO_KEYWORDS = readFileSync(
 );
 
 const CRON_SECRET = process.env.CRON_SECRET;
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
+const SLACK_CHANNEL_ID = process.env.SLACK_CHANNEL_ID;
 
 // Types for external APIs
 interface ChicagoPermit {
@@ -318,6 +320,104 @@ function markdownToPortableText(markdown: string) {
   return blocks;
 }
 
+// Send Slack notification for draft review
+async function sendSlackNotification(draft: {
+  id: string;
+  title: string;
+  excerpt: string;
+  slug: string;
+  dataSource: string;
+}): Promise<void> {
+  if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+    console.log("Slack not configured, skipping notification");
+    return;
+  }
+
+  const studioUrl = `https://homescapeconstruction.sanity.studio/structure/blogPost;${draft.id}`;
+  const previewUrl = `https://homescapeconstruction.com/blog/${draft.slug}`;
+
+  const blocks = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "📝 New Blog Draft Ready for Review",
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*${draft.title}*\n\n${draft.excerpt}`,
+      },
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `📊 Data source: *${draft.dataSource}* | 🔗 <${studioUrl}|Edit in Studio> | <${previewUrl}|Preview>`,
+        },
+      ],
+    },
+    {
+      type: "divider",
+    },
+    {
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "✅ Approve & Publish",
+            emoji: true,
+          },
+          style: "primary",
+          action_id: "approve_post",
+          value: draft.id,
+        },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "❌ Reject",
+            emoji: true,
+          },
+          style: "danger",
+          action_id: "reject_post",
+          value: draft.id,
+        },
+      ],
+    },
+  ];
+
+  try {
+    const response = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
+      },
+      body: JSON.stringify({
+        channel: SLACK_CHANNEL_ID,
+        blocks,
+        text: `New blog draft: ${draft.title}`, // Fallback text
+      }),
+    });
+
+    const result = await response.json();
+    if (!result.ok) {
+      console.error("Slack API error:", result.error);
+    } else {
+      console.log("Slack notification sent for:", draft.title);
+    }
+  } catch (error) {
+    console.error("Failed to send Slack notification:", error);
+  }
+}
+
 // Generate URL-friendly slug
 function slugify(text: string): string {
   return text
@@ -583,6 +683,15 @@ export async function POST(request: NextRequest) {
 
       createdDocs.push({ id: doc._id, title: post.title });
       console.log(`Created blog draft: ${doc._id} - ${post.title}`);
+
+      // Send Slack notification for review
+      await sendSlackNotification({
+        id: doc._id,
+        title: post.title,
+        excerpt: post.excerpt,
+        slug: slugify(post.title),
+        dataSource: dataSourceLabels[dataSourceType],
+      });
     }
 
     return NextResponse.json({
