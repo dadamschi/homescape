@@ -105,6 +105,17 @@ export interface PortableTextBlock {
   }>;
 }
 
+// Table block type
+export interface TableBlock {
+  _type: "table";
+  _key: string;
+  headers: string[];
+  rows: string[][];
+}
+
+// Combined block type for body content
+export type BodyBlock = PortableTextBlock | TableBlock;
+
 export interface BlogPostFAQ {
   question: string;
   answer: string;
@@ -142,7 +153,7 @@ export interface BlogPost {
   publishedAt?: string;
   excerpt?: string;
   mainImage?: SanityImage;
-  body?: PortableTextBlock[];
+  body?: BodyBlock[];
   categories?: BlogCategory[];
   serviceType?: BlogServiceType;
   seo?: BlogPostSEO;

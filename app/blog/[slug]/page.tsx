@@ -94,11 +94,73 @@ function renderChildren(
   });
 }
 
+// Render a table block
+function renderTable(block: { _key: string; headers: string[]; rows: string[][] }) {
+  return (
+    <div key={block._key} style={{ overflowX: "auto", margin: "1.5rem 0" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "0.95rem",
+          border: "1px solid #e5e5e5",
+        }}
+      >
+        <thead>
+          <tr style={{ background: "rgba(107, 155, 28, 0.1)" }}>
+            {block.headers.map((header, i) => (
+              <th
+                key={i}
+                style={{
+                  padding: "0.75rem 1rem",
+                  textAlign: "left",
+                  fontWeight: 600,
+                  borderBottom: "2px solid #6b9b1c",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {block.rows.map((row, rowIdx) => (
+            <tr
+              key={rowIdx}
+              style={{
+                background: rowIdx % 2 === 0 ? "white" : "rgba(0, 0, 0, 0.02)",
+              }}
+            >
+              {row.map((cell, cellIdx) => (
+                <td
+                  key={cellIdx}
+                  style={{
+                    padding: "0.75rem 1rem",
+                    borderBottom: "1px solid #e5e5e5",
+                  }}
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // Render Portable Text blocks
 function renderPortableText(blocks: BlogPost["body"]) {
   if (!blocks) return null;
 
   return blocks.map((block) => {
+    // Handle table blocks
+    if (block._type === "table") {
+      return renderTable(block);
+    }
+
     if (block._type !== "block") return null;
 
     const children = renderChildren(block.children, block.markDefs);
@@ -233,7 +295,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             {post.title}
           </h1>
 
-{post.categories && post.categories.length > 0 && (
+          {post.categories && post.categories.length > 0 && (
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
               {post.categories.map((cat) => {
                 const colors = categoryColors[cat] || defaultColor;
@@ -257,7 +319,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               })}
             </div>
           )}
-          
+
           <div
             style={{
               display: "flex",

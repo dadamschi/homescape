@@ -206,18 +206,30 @@ interface LinkMarkDef {
   href: string;
 }
 
-// Convert markdown to Portable Text blocks with link support
-function markdownToPortableText(markdown: string) {
-  const blocks: Array<{
-    _type: "block";
-    _key: string;
-    style: string;
-    children: Array<{ _type: "span"; _key: string; text: string; marks: string[] }>;
-    markDefs: LinkMarkDef[];
-  }> = [];
+// Block types for Portable Text
+interface TextBlock {
+  _type: "block";
+  _key: string;
+  style: string;
+  children: Array<{ _type: "span"; _key: string; text: string; marks: string[] }>;
+  markDefs: LinkMarkDef[];
+}
 
+interface TableBlock {
+  _type: "table";
+  _key: string;
+  headers: string[];
+  rows: string[][];
+}
+
+type PortableTextBlock = TextBlock | TableBlock;
+
+// Convert markdown to Portable Text blocks with link and table support
+function markdownToPortableText(markdown: string): PortableTextBlock[] {
+  const blocks: PortableTextBlock[] = [];
   const lines = markdown.split("\n");
   let keyCounter = 0;
+  let i = 0;
 
   const generateKey = () => `key-${keyCounter++}`;
 
@@ -287,14 +299,63 @@ function markdownToPortableText(markdown: string) {
     return { children, markDefs };
   }
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  // Parse a table row into cells
+  function parseTableRow(line: string): string[] {
+    return line
+      .split("|")
+      .map((cell) => cell.trim())
+      .filter((cell, idx, arr) => idx > 0 && idx < arr.length - 1); // Remove empty first/last from | borders
+  }
 
+  // Check if a line is a table separator (|---|---|...)
+  function isTableSeparator(line: string): boolean {
+    return /^\|[\s-:|]+\|$/.test(line.trim());
+  }
+
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+
+    // Skip empty lines
+    if (!trimmed) {
+      i++;
+      continue;
+    }
+
+    // Check if this is a table (starts with |)
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      const tableLines: string[] = [];
+
+      // Collect all consecutive table lines
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        tableLines.push(lines[i].trim());
+        i++;
+      }
+
+      // Parse table if we have at least header + separator + 1 row
+      if (tableLines.length >= 3 && isTableSeparator(tableLines[1])) {
+        const headers = parseTableRow(tableLines[0]);
+        const rows: string[][] = [];
+
+        for (let j = 2; j < tableLines.length; j++) {
+          if (!isTableSeparator(tableLines[j])) {
+            rows.push(parseTableRow(tableLines[j]));
+          }
+        }
+
+        blocks.push({
+          _type: "table",
+          _key: generateKey(),
+          headers,
+          rows,
+        });
+      }
+      continue;
+    }
+
+    // Handle headings and regular text
     let style = "normal";
     let text = trimmed;
 
-    // Handle headings
     if (trimmed.startsWith("### ")) {
       style = "h3";
       text = trimmed.slice(4);
@@ -315,6 +376,8 @@ function markdownToPortableText(markdown: string) {
       children,
       markDefs,
     });
+
+    i++;
   }
 
   return blocks;
@@ -662,10 +725,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Create as draft (no publishedAt) - editor reviews and publishes manually
+      // Add timestamp to slug to avoid duplicates
+      const timestamp = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const slugWithDate = `${slugify(post.title)}-${timestamp}`;
+
       const doc = await sanityWriteClient.create({
         _type: "blogPost",
         title: post.title,
-        slug: { _type: "slug", current: slugify(post.title) },
+        slug: { _type: "slug", current: slugWithDate },
         author: "Dave Adams",
         excerpt: post.excerpt,
         body: markdownToPortableText(post.body),
@@ -689,7 +756,7 @@ export async function POST(request: NextRequest) {
         id: doc._id,
         title: post.title,
         excerpt: post.excerpt,
-        slug: slugify(post.title),
+        slug: slugWithDate,
         dataSource: dataSourceLabels[dataSourceType],
       });
     }
