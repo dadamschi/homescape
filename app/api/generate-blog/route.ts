@@ -512,12 +512,26 @@ export async function POST(request: NextRequest) {
       throw new Error("Unexpected response type from Claude");
     }
 
-    // Parse the JSON response
+    // Parse the JSON response (strip markdown code blocks if present)
+    let jsonText = content.text.trim();
+    // Remove markdown code blocks
+    if (jsonText.startsWith("```json")) {
+      jsonText = jsonText.slice(7);
+    } else if (jsonText.startsWith("```")) {
+      jsonText = jsonText.slice(3);
+    }
+    if (jsonText.endsWith("```")) {
+      jsonText = jsonText.slice(0, -3);
+    }
+    jsonText = jsonText.trim();
+
     let generated: GeneratedPosts;
     try {
-      generated = JSON.parse(content.text);
-    } catch {
-      console.error("Failed to parse Claude response:", content.text);
+      generated = JSON.parse(jsonText);
+    } catch (parseError) {
+      console.error("Failed to parse Claude response. Raw text:", content.text.slice(0, 500));
+      console.error("Cleaned text:", jsonText.slice(0, 500));
+      console.error("Parse error:", parseError);
       throw new Error("Invalid JSON response from Claude");
     }
 
