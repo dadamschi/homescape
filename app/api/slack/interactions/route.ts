@@ -3,11 +3,13 @@ import crypto from "crypto";
 import { sanityWriteClient } from "@/lib/sanity";
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
 // Verify Slack request signature
 function verifySlackRequest(body: string, timestamp: string, signature: string): boolean {
-  if (!SLACK_SIGNING_SECRET) return false;
+  if (!SLACK_SIGNING_SECRET) {
+    console.log("SLACK_SIGNING_SECRET not set, skipping verification");
+    return true; // Allow requests if signing secret not configured
+  }
 
   const sigBasestring = `v0:${timestamp}:${body}`;
   const mySignature =
@@ -44,6 +46,13 @@ async function updateSlackMessage(
   });
 }
 
+interface SanityDoc {
+  _id: string;
+  _type: string;
+  title: string;
+  [key: string]: unknown;
+}
+
 export async function POST(request: NextRequest) {
   // Get raw body for signature verification
   const body = await request.text();
@@ -51,7 +60,7 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-slack-signature") || "";
 
   // Verify request is from Slack
-  if (SLACK_SIGNING_SECRET && !verifySlackRequest(body, timestamp, signature)) {
+  if (!verifySlackRequest(body, timestamp, signature)) {
     console.error("Invalid Slack signature");
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
@@ -75,61 +84,69 @@ export async function POST(request: NextRequest) {
   const documentId = action.value;
   const actionId = action.action_id;
 
+  console.log(`Slack action: ${actionId} on document: ${documentId}`);
+
   try {
-    // Fetch the document to get its title
-    const doc = await sanityWriteClient.fetch<{ title: string } | null>(
-      `*[_id == $id][0]{ title }`,
-      { id: documentId }
+    // Try to find the document - check both with and without drafts prefix
+    const baseId = documentId.replace(/^drafts\./, "");
+    const draftId = `drafts.${baseId}`;
+
+    // Query for either version
+    const doc = await sanityWriteClient.fetch<SanityDoc | null>(
+      `*[_id == $draftId || _id == $baseId][0]`,
+      { draftId, baseId }
     );
 
     if (!doc) {
-      // Also check with drafts prefix
-      const draftDoc = await sanityWriteClient.fetch<{ title: string } | null>(
-        `*[_id == $id][0]{ title }`,
-        { id: `drafts.${documentId}` }
-      );
-      if (!draftDoc) {
-        await updateSlackMessage(responseUrl, "Unknown post", "rejected", user);
-        return NextResponse.json({ error: "Document not found" });
-      }
+      console.error(`Document not found: ${documentId}`);
+      await updateSlackMessage(responseUrl, "Unknown post", "rejected", user);
+      return NextResponse.json({ error: "Document not found" });
     }
 
-    const title = doc?.title || "Blog Post";
+    const title = doc.title || "Blog Post";
+    const actualId = doc._id;
+    const isDraft = actualId.startsWith("drafts.");
+
+    console.log(`Found document: ${actualId}, title: ${title}, isDraft: ${isDraft}`);
 
     if (actionId === "approve_post") {
-      // Publish the draft by setting publishedAt
-      const draftId = documentId.startsWith("drafts.") ? documentId : `drafts.${documentId}`;
+      if (isDraft) {
+        // Set publishedAt on the draft
+        await sanityWriteClient
+          .patch(actualId)
+          .set({ publishedAt: new Date().toISOString() })
+          .commit();
 
-      await sanityWriteClient
-        .patch(draftId)
-        .set({ publishedAt: new Date().toISOString() })
-        .commit();
-
-      // Publish the document (copy draft to published)
-      const publishedId = documentId.replace("drafts.", "");
-      const draftDoc = await sanityWriteClient.fetch(`*[_id == $id][0]`, {
-        id: draftId,
-      });
-
-      if (draftDoc) {
-        // Create or replace the published version
-        await sanityWriteClient.createOrReplace({
-          ...draftDoc,
-          _id: publishedId,
+        // Fetch the updated draft
+        const updatedDoc = await sanityWriteClient.fetch<SanityDoc>(`*[_id == $id][0]`, {
+          id: actualId,
         });
-        // Delete the draft
-        await sanityWriteClient.delete(draftId);
+
+        if (updatedDoc) {
+          // Create the published version (without drafts. prefix)
+          const { _id, ...docWithoutId } = updatedDoc;
+          await sanityWriteClient.createOrReplace({
+            ...docWithoutId,
+            _id: baseId,
+          });
+
+          // Delete the draft
+          await sanityWriteClient.delete(actualId);
+          console.log(`Published: ${baseId}`);
+        }
+      } else {
+        // Already published, just ensure publishedAt is set
+        await sanityWriteClient
+          .patch(actualId)
+          .set({ publishedAt: new Date().toISOString() })
+          .commit();
       }
 
-      console.log(`Published blog post: ${title}`);
       await updateSlackMessage(responseUrl, title, "approved", user);
     } else if (actionId === "reject_post") {
-      // Delete the draft
-      const draftId = documentId.startsWith("drafts.") ? documentId : `drafts.${documentId}`;
-
-      await sanityWriteClient.delete(draftId);
-
-      console.log(`Rejected blog post: ${title}`);
+      // Delete the document (draft or published)
+      await sanityWriteClient.delete(actualId);
+      console.log(`Rejected/deleted: ${actualId}`);
       await updateSlackMessage(responseUrl, title, "rejected", user);
     }
 
