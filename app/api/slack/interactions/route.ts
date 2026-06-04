@@ -25,8 +25,8 @@ async function updateSlackMessage(
   action: "approved" | "rejected",
   user: string
 ): Promise<void> {
-  const emoji = action === "approved" ? "✅" : "❌";
-  const verb = action === "approved" ? "Published" : "Rejected";
+  const emoji = action === "approved" ? "✅" : "⏸️";
+  const verb = action === "approved" ? "Published" : "Skipped (draft kept)";
 
   await fetch(responseUrl, {
     method: "POST",
@@ -144,9 +144,8 @@ export async function POST(request: NextRequest) {
 
       await updateSlackMessage(responseUrl, title, "approved", user);
     } else if (actionId === "reject_post") {
-      // Delete the document (draft or published)
-      await sanityWriteClient.delete(actualId);
-      console.log(`Rejected/deleted: ${actualId}`);
+      // Just mark as rejected in Slack, keep draft for manual review
+      console.log(`Rejected (kept as draft): ${actualId}`);
       await updateSlackMessage(responseUrl, title, "rejected", user);
     }
 
