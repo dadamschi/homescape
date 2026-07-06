@@ -147,6 +147,7 @@ export type BlogServiceType =
 export interface BlogPost {
   _id: string;
   _type: "blogPost";
+  _updatedAt?: string;
   title: string;
   slug: { current: string };
   author?: string;

@@ -64,6 +64,7 @@ export const queries = {
 
   blogPostBySlug: `*[_type == "blogPost" && slug.current == $slug][0] {
     _id,
+    _updatedAt,
     title,
     slug,
     author,

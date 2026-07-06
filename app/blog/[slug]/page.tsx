@@ -421,6 +421,37 @@ export default async function BlogPostPage({ params }: PageProps) {
         )}
       </article>
 
+      {/* JSON-LD for BreadcrumbList schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://homescapeconstruction.com",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Blog",
+                item: "https://homescapeconstruction.com/blog",
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: post.title,
+                item: `https://homescapeconstruction.com/blog/${post.slug.current}`,
+              },
+            ],
+          }),
+        }}
+      />
+
       {/* JSON-LD for Article schema */}
       <script
         type="application/ld+json"
@@ -428,9 +459,14 @@ export default async function BlogPostPage({ params }: PageProps) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `https://homescapeconstruction.com/blog/${post.slug.current}`,
+            },
             headline: post.title,
             description: post.excerpt,
             datePublished: post.publishedAt,
+            dateModified: post._updatedAt || post.publishedAt,
             ...(post.mainImage?.asset && {
               image: urlFor(post.mainImage).width(1200).height(630).url(),
             }),
@@ -451,6 +487,13 @@ export default async function BlogPostPage({ params }: PageProps) {
               "@type": "Organization",
               name: "Homescape Construction",
               url: "https://homescapeconstruction.com",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://homescapeconstruction.com/logo.png",
+              },
+            },
+            isPartOf: {
+              "@id": "https://www.homescapeconstruction.com/#website",
             },
           }),
         }}

@@ -8,6 +8,28 @@ import QuickContact from "@/components/QuickContact";
 import ThemeProvider from "@/components/ThemeProvider";
 import "./globals.css";
 
+// JSON-LD Schema for WebSite (enables sitelinks searchbox)
+function WebSiteSchema() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://www.homescapeconstruction.com/#website",
+    url: "https://www.homescapeconstruction.com",
+    name: "Homescape Construction",
+    description: "Chicago home builder and remodeling contractor since 2012",
+    publisher: {
+      "@id": "https://www.homescapeconstruction.com/#organization",
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 // JSON-LD Schema for LocalBusiness (GEO optimization)
 function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
   const schema = {
@@ -235,6 +257,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" data-theme="green" suppressHydrationWarning>
       <head>
+        {/* Preconnect hints for faster resource loading */}
+        <link rel="preconnect" href="https://cdn.sanity.io" />
+        <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Schema.org structured data */}
+        <WebSiteSchema />
         <LocalBusinessSchema settings={siteSettings} />
       </head>
       <body>
