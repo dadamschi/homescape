@@ -7,8 +7,6 @@ on:
     branches: [main]
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   NEXT_PUBLIC_SANITY_PROJECT_ID: 2omgdk67
   NEXT_PUBLIC_SANITY_DATASET: production
 
@@ -36,31 +34,5 @@ jobs:
       - name: Build
         run: npm run build
 
-  deploy:
-    name: Deploy
-    needs: test
-    runs-on: ubuntu-latest
-    # Only deploy on main push AND when secrets are configured
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Create Vercel Project Config
-        run: |
-          mkdir -p .vercel
-          echo '{"projectId":"'"$VERCEL_PROJECT_ID"'","orgId":"'"$VERCEL_ORG_ID"'"}' > .vercel/project.json
-          cat .vercel/project.json
-
-      - name: Deploy to Vercel
-        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+# Deployment is handled by Vercel's GitHub integration
+# Connect at: https://vercel.com/new → Import Git Repository
