@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     title: "Client Testimonials | Homescape Construction",
     description: "Real feedback from our satisfied construction clients",
   },
+  alternates: {
+    canonical: "https://homescapeconstruction.com/testimonials",
+  },
 };
 
 // Revalidate every hour
@@ -24,9 +27,7 @@ export default async function TestimonialsPage() {
     <div className="page">
       <div className="container section">
         <div className="section-label animate-fade-up">Testimonials</div>
-        <h1 className="section-title animate-fade-up animate-delay-1">
-          What our clients say
-        </h1>
+        <h1 className="section-title animate-fade-up animate-delay-1">What our clients say</h1>
         <p
           className="section-subtitle animate-fade-up animate-delay-2"
           style={{ marginBottom: "2.5rem" }}

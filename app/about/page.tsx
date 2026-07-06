@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     title: "About Homescape Construction",
     description: "Chicago construction company since 2012 - 200+ projects, 98% satisfaction",
   },
+  alternates: {
+    canonical: "https://homescapeconstruction.com/about",
+  },
 };
 
 // Revalidate every hour
@@ -71,9 +74,7 @@ export default async function AboutPage() {
         <div className="about-grid">
           <div>
             <div className="section-label animate-fade-up">About Us</div>
-            <h1 className="section-title animate-fade-up animate-delay-1">
-              {content.headline}
-            </h1>
+            <h1 className="section-title animate-fade-up animate-delay-1">{content.headline}</h1>
             <p className="about-story animate-fade-up animate-delay-2">{content.story}</p>
             <div className="values-list animate-fade-up animate-delay-3">
               {content.values?.map((v, i) => (

@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     title: "Our Projects | Homescape Construction",
     description: "Portfolio of completed construction projects in Chicago",
   },
+  alternates: {
+    canonical: "https://homescapeconstruction.com/projects",
+  },
 };
 
 // Revalidate every hour

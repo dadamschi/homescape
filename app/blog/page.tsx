@@ -5,9 +5,12 @@ import { BlogCard } from "@/components/BlogCard";
 import type { BlogPost } from "@/lib/types";
 
 export const metadata: Metadata = {
-  title: "Blog | Homescape Construction",
+  title: "Blog",
   description:
     "Chicago construction insights, seasonal tips, and home improvement advice from Homescape Construction.",
+  alternates: {
+    canonical: "https://homescapeconstruction.com/blog",
+  },
 };
 
 type BlogListItem = Pick<

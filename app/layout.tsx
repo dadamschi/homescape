@@ -19,7 +19,7 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
       "Owner-operated home builder and remodeling contractor serving Chicago and suburbs for 20+ years. Custom homes, kitchen and bathroom remodeling, additions, basement finishing, and ADU construction.",
     url: "https://www.homescapeconstruction.com",
     logo: "https://www.homescapeconstruction.com/logo.png",
-    image: "https://www.homescapeconstruction.com/og-image.jpg",
+    image: "https://www.homescapeconstruction.com/opengraph-image",
     email: settings.email,
     // Direct users to contact form instead of phone
     contactPoint: {
@@ -79,7 +79,7 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
       { "@type": "City", name: "Evanston, IL" },
       { "@type": "City", name: "Park Ridge, IL" },
       { "@type": "City", name: "Niles, IL" },
-      { "@type": "City", name: "Skokie, IL" }
+      { "@type": "City", name: "Skokie, IL" },
     ],
     makesOffer: [
       {
@@ -87,7 +87,8 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
         itemOffered: {
           "@type": "Service",
           name: "Custom Home Building",
-          description: "New construction and tear-down-and-rebuild projects across Chicago and suburbs.",
+          description:
+            "New construction and tear-down-and-rebuild projects across Chicago and suburbs.",
         },
       },
       {
@@ -95,7 +96,8 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
         itemOffered: {
           "@type": "Service",
           name: "Kitchen Remodeling",
-          description: "Full kitchen renovations including cabinetry, countertops, flooring, lighting, and plumbing.",
+          description:
+            "Full kitchen renovations including cabinetry, countertops, flooring, lighting, and plumbing.",
         },
       },
       {
@@ -103,7 +105,8 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
         itemOffered: {
           "@type": "Service",
           name: "Bathroom Remodeling",
-          description: "Custom tile work, shower and tub installation, vanity design, and accessibility upgrades.",
+          description:
+            "Custom tile work, shower and tub installation, vanity design, and accessibility upgrades.",
         },
       },
       {
@@ -119,7 +122,8 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
         itemOffered: {
           "@type": "Service",
           name: "Basement Finishing",
-          description: "Full basement build-outs including framing, electrical, plumbing, drywall, and flooring.",
+          description:
+            "Full basement build-outs including framing, electrical, plumbing, drywall, and flooring.",
         },
       },
       {
@@ -127,7 +131,8 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
         itemOffered: {
           "@type": "Service",
           name: "ADU & Garage Conversions",
-          description: "Accessory dwelling unit construction and garage conversions compliant with Chicago zoning.",
+          description:
+            "Accessory dwelling unit construction and garage conversions compliant with Chicago zoning.",
         },
       },
       {
@@ -135,7 +140,8 @@ function LocalBusinessSchema({ settings }: { settings: SiteSettings }) {
         itemOffered: {
           "@type": "Service",
           name: "General Contracting",
-          description: "Licensed general contracting and project management for residential construction.",
+          description:
+            "Licensed general contracting and project management for residential construction.",
         },
       },
     ],
@@ -201,14 +207,6 @@ export const metadata: Metadata = {
     title: "Homescape Construction Inc. | Chicago Residential & Commercial Construction",
     description:
       "Chicago-based residential and commercial construction company. Custom homes, renovations, and commercial builds since 2012.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Homescape Construction - Quality Craftsmanship in Chicago",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -231,11 +229,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const siteSettings = await sanityFetch<SiteSettings>(queries.siteSettings);
 
   return (

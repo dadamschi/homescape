@@ -46,6 +46,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           images: [{ url: urlFor(post.mainImage).width(1200).height(630).url() }],
         }
       : undefined,
+    alternates: {
+      canonical: `https://homescapeconstruction.com/blog/${slug}`,
+    },
   };
 }
 

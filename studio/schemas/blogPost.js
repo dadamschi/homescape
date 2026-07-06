@@ -175,6 +175,21 @@ export const blogPost = defineType({
       type: "datetime",
       description: "When AI generated this draft",
     }),
+    defineField({
+      name: "qualityScore",
+      title: "Quality Score",
+      type: "number",
+      description: "AI quality score (0-100) from multi-pass generation",
+      validation: (R) => R.min(0).max(100),
+      readOnly: true,
+    }),
+    defineField({
+      name: "wordCount",
+      title: "Word Count",
+      type: "number",
+      description: "Estimated word count of the post body",
+      readOnly: true,
+    }),
   ],
   preview: {
     select: {

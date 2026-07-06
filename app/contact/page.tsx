@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     title: "Contact Homescape Construction",
     description: "Get a free consultation for your construction project",
   },
+  alternates: {
+    canonical: "https://homescapeconstruction.com/contact",
+  },
 };
 
 // Revalidate every hour

@@ -390,6 +390,8 @@ async function sendSlackNotification(draft: {
   excerpt: string;
   slug: string;
   dataSource: string;
+  qualityScore: number;
+  wordCount: number;
 }): Promise<void> {
   if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
     console.log("Slack not configured, skipping notification");
@@ -420,7 +422,16 @@ async function sendSlackNotification(draft: {
       elements: [
         {
           type: "mrkdwn",
-          text: `📊 Data source: *${draft.dataSource}* | 🔗 <${studioUrl}|Edit in Studio> | <${previewUrl}|Preview>`,
+          text: `📊 Data: *${draft.dataSource}* | 🎯 Quality: *${draft.qualityScore}/100* | 📝 Words: *${draft.wordCount}*`,
+        },
+      ],
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `🔗 <${studioUrl}|Edit in Studio> | <${previewUrl}|Preview>`,
         },
       ],
     },
@@ -487,6 +498,375 @@ function slugify(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+// ============================================================================
+// MULTI-PASS GENERATION SYSTEM
+// ============================================================================
+
+// Slop phrases to check for in quality review
+const SLOP_PHRASES = [
+  "in today's market",
+  "in today's fast-paced world",
+  "when it comes to",
+  "look no further",
+  "nestled in the heart of",
+  "whether you're a",
+  "we've got you covered",
+  "elevate your space",
+  "transform your dreams",
+  "top-notch",
+  "state-of-the-art",
+  "second to none",
+  "our team of experts",
+  "don't hesitate to",
+  "contact us today",
+  "without further ado",
+  "it's important to note",
+  "in conclusion",
+  "at the end of the day",
+  "game-changer",
+  "seamless",
+  "leverage",
+  "synergy",
+];
+
+// Content quality metrics
+interface ContentScore {
+  wordCount: number;
+  hasLeadAnswer: boolean;
+  questionHeadingCount: number;
+  faqCount: number;
+  internalLinkCount: number;
+  externalLinkCount: number;
+  slopPhraseCount: number;
+  slopPhrasesFound: string[];
+  passesMinimums: boolean;
+  overallScore: number; // 0-100
+}
+
+// Score the generated content
+function scoreContent(post: BlogPost): ContentScore {
+  const body = post.body || "";
+  const wordCount = body.split(/\s+/).filter((w) => w.length > 0).length;
+
+  // Check for lead answer (first paragraph should be substantial)
+  const firstParagraph = body.split("\n\n")[0] || "";
+  const firstParaWords = firstParagraph.split(/\s+/).filter((w) => w.length > 0).length;
+  const hasLeadAnswer = firstParaWords >= 30 && firstParaWords <= 80;
+
+  // Count question headings
+  const headingMatches = body.match(/^##\s+.*\?/gm) || [];
+  const questionHeadingCount = headingMatches.length;
+
+  // Count FAQs
+  const faqCount = post.faq?.length || 0;
+
+  // Count internal links (/blog/)
+  const internalLinkMatches = body.match(/\]\(\/blog\//g) || [];
+  const internalLinkCount = internalLinkMatches.length;
+
+  // Count external links (http)
+  const externalLinkMatches = body.match(/\]\(https?:\/\//g) || [];
+  const externalLinkCount = externalLinkMatches.length;
+
+  // Check for slop phrases
+  const bodyLower = body.toLowerCase();
+  const slopPhrasesFound = SLOP_PHRASES.filter((phrase) =>
+    bodyLower.includes(phrase.toLowerCase())
+  );
+  const slopPhraseCount = slopPhrasesFound.length;
+
+  // Calculate if minimums are met
+  const passesMinimums =
+    wordCount >= 500 &&
+    hasLeadAnswer &&
+    questionHeadingCount >= 1 &&
+    faqCount >= 3 &&
+    externalLinkCount >= 1 &&
+    slopPhraseCount === 0;
+
+  // Calculate overall score (0-100)
+  let score = 0;
+  score += Math.min(30, (wordCount / 800) * 30); // Up to 30 points for word count
+  score += hasLeadAnswer ? 15 : 0;
+  score += Math.min(10, questionHeadingCount * 5); // Up to 10 points
+  score += Math.min(15, faqCount * 3); // Up to 15 points
+  score += Math.min(10, internalLinkCount * 5); // Up to 10 points
+  score += Math.min(10, externalLinkCount * 5); // Up to 10 points
+  score -= slopPhraseCount * 5; // Deduct for slop phrases
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    wordCount,
+    hasLeadAnswer,
+    questionHeadingCount,
+    faqCount,
+    internalLinkCount,
+    externalLinkCount,
+    slopPhraseCount,
+    slopPhrasesFound,
+    passesMinimums,
+    overallScore: Math.round(score),
+  };
+}
+
+// Outline structure from Pass 1
+interface BlogOutline {
+  title: string;
+  targetKeyword: string;
+  leadAnswerSummary: string;
+  sections: Array<{
+    heading: string;
+    keyPoints: string[];
+    isQuestion: boolean;
+  }>;
+  faqTopics: string[];
+  internalLinksToInclude: string[];
+  externalSourcesToUse: string[];
+}
+
+interface OutlineResponse {
+  outline: BlogOutline;
+}
+
+// Pass 1: Generate outline only
+async function generateOutline(
+  anthropic: Anthropic,
+  ctx: DataContext,
+  topicGuidance: string,
+  primaryDataSection: string
+): Promise<BlogOutline> {
+  const existingPostsList =
+    ctx.existingPosts.length > 0
+      ? ctx.existingPosts.map((p) => `- "${p.title}" (/blog/${p.slug})`).join("\n")
+      : "No existing posts yet.";
+
+  const outlinePrompt = `You are planning a blog post for Homescape Construction, a Chicago contractor.
+
+## DATA CONTEXT
+${primaryDataSection}
+
+## TOPIC FOCUS
+${topicGuidance}
+
+## EXISTING POSTS FOR LINKING
+${existingPostsList}
+
+## YOUR TASK
+Create a detailed OUTLINE for ONE blog post. Do NOT write the content yet - just the structure.
+
+The outline must include:
+1. A specific, SEO-friendly title (under 60 chars)
+2. The primary keyword to target
+3. A brief summary of what the lead answer will cover (the first 40-60 words)
+4. 4-6 section headings with key points for each. At least ONE heading must be a question.
+5. 3-5 FAQ topics (just the questions, not answers yet)
+6. Which existing posts to link to (1-2)
+7. Which external sources to cite (Chicago Building Dept, EPA, ENERGY STAR, etc.)
+
+Respond with valid JSON only:
+{
+  "outline": {
+    "title": "string",
+    "targetKeyword": "string",
+    "leadAnswerSummary": "string",
+    "sections": [
+      { "heading": "string", "keyPoints": ["string"], "isQuestion": boolean }
+    ],
+    "faqTopics": ["string"],
+    "internalLinksToInclude": ["/blog/slug"],
+    "externalSourcesToUse": ["https://url"]
+  }
+}`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 2000,
+    messages: [{ role: "user", content: outlinePrompt }],
+  });
+
+  const content = response.content[0];
+  if (content.type !== "text") {
+    throw new Error("Unexpected response type from Claude in outline generation");
+  }
+
+  let jsonText = content.text.trim();
+  if (jsonText.startsWith("```json")) jsonText = jsonText.slice(7);
+  else if (jsonText.startsWith("```")) jsonText = jsonText.slice(3);
+  if (jsonText.endsWith("```")) jsonText = jsonText.slice(0, -3);
+  jsonText = jsonText.trim();
+
+  const parsed: OutlineResponse = JSON.parse(jsonText);
+  return parsed.outline;
+}
+
+// Pass 2: Expand outline into full content
+async function expandOutline(
+  anthropic: Anthropic,
+  outline: BlogOutline,
+  ctx: DataContext,
+  primaryDataSection: string
+): Promise<BlogPost> {
+  const expandPrompt = `You are writing a blog post for Homescape Construction based on this approved outline.
+
+## CONTENT GUIDELINES (follow exactly)
+${CONTENT_GUIDELINES}
+
+## SEO KEYWORDS
+${SEO_KEYWORDS}
+
+## DATA TO REFERENCE
+${primaryDataSection}
+
+${ctx.weather ? `Current weather: ${ctx.weather.weather[0]?.description}, ${Math.round(ctx.weather.main.temp)}°F` : ""}
+
+## APPROVED OUTLINE
+Title: ${outline.title}
+Target Keyword: ${outline.targetKeyword}
+Lead Answer Summary: ${outline.leadAnswerSummary}
+
+Sections:
+${outline.sections.map((s) => `- ${s.heading}${s.isQuestion ? " (QUESTION)" : ""}\n  Key points: ${s.keyPoints.join("; ")}`).join("\n")}
+
+FAQ Topics to Answer:
+${outline.faqTopics.map((q) => `- ${q}`).join("\n")}
+
+Internal Links to Include: ${outline.internalLinksToInclude.join(", ")}
+External Sources to Cite: ${outline.externalSourcesToUse.join(", ")}
+
+## YOUR TASK
+Write the FULL blog post following the outline above. Requirements:
+- Lead answer: 40-60 words, directly answers the title's question
+- Body: 700-1,200 words total, expand each section thoroughly
+- FAQ section: Write 40-60 word answers for each FAQ topic
+- Include all specified internal and external links naturally
+- NO slop phrases (see guidelines)
+- End with ONE soft CTA
+
+Respond with valid JSON only (no markdown blocks):
+{
+  "posts": [{
+    "title": "string",
+    "excerpt": "string (max 160 chars)",
+    "body": "full markdown content",
+    "categories": ["string"],
+    "serviceType": "string or null",
+    "seo": { "metaTitle": "string (50-70 chars total)", "metaDescription": "string (max 160 chars)" },
+    "faq": [{ "question": "string", "answer": "string" }]
+  }]
+}`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 4000,
+    messages: [{ role: "user", content: expandPrompt }],
+  });
+
+  const content = response.content[0];
+  if (content.type !== "text") {
+    throw new Error("Unexpected response type from Claude in content expansion");
+  }
+
+  let jsonText = content.text.trim();
+  if (jsonText.startsWith("```json")) jsonText = jsonText.slice(7);
+  else if (jsonText.startsWith("```")) jsonText = jsonText.slice(3);
+  if (jsonText.endsWith("```")) jsonText = jsonText.slice(0, -3);
+  jsonText = jsonText.trim();
+
+  const parsed: GeneratedPosts = JSON.parse(jsonText);
+  if (!parsed.posts?.[0]) {
+    throw new Error("No post generated in expansion pass");
+  }
+
+  return parsed.posts[0];
+}
+
+// Pass 3: Quality review and improvement
+async function reviewAndImprove(
+  anthropic: Anthropic,
+  post: BlogPost,
+  score: ContentScore
+): Promise<BlogPost> {
+  // If score is good enough, skip the review pass
+  if (score.overallScore >= 80 && score.slopPhraseCount === 0) {
+    console.log(`Quality score ${score.overallScore}/100 - skipping review pass`);
+    return post;
+  }
+
+  console.log(
+    `Quality score ${score.overallScore}/100, slop phrases: ${score.slopPhrasesFound.join(", ")} - running review pass`
+  );
+
+  const reviewPrompt = `You are a senior editor reviewing a blog post for Homescape Construction.
+
+## QUALITY ISSUES FOUND
+- Word count: ${score.wordCount} (target: 700-1,200)
+- Lead answer present: ${score.hasLeadAnswer ? "Yes" : "NO - NEEDS FIXING"}
+- Question headings: ${score.questionHeadingCount} (need at least 1)
+- FAQ count: ${score.faqCount} (need at least 3)
+- Internal links: ${score.internalLinkCount} (need 1-2)
+- External links: ${score.externalLinkCount} (need at least 1)
+- Slop phrases found: ${score.slopPhrasesFound.length > 0 ? score.slopPhrasesFound.join(", ") : "None"}
+
+## SLOP PHRASES TO REMOVE (if present)
+${SLOP_PHRASES.join(", ")}
+
+## CURRENT POST
+Title: ${post.title}
+Excerpt: ${post.excerpt}
+
+Body:
+${post.body}
+
+FAQ:
+${post.faq?.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n")}
+
+## YOUR TASK
+Improve this post by:
+1. Removing any slop phrases - replace with direct, specific language
+2. Ensuring the lead answer is 40-60 words and directly answers the title
+3. Adding a question-phrased H2 if missing
+4. Expanding content if under 700 words
+5. Adding missing links if needed
+
+Return the IMPROVED post as valid JSON (same structure as input):
+{
+  "posts": [{
+    "title": "string",
+    "excerpt": "string",
+    "body": "string",
+    "categories": ["string"],
+    "serviceType": "string or null",
+    "seo": { "metaTitle": "string", "metaDescription": "string" },
+    "faq": [{ "question": "string", "answer": "string" }]
+  }]
+}`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 4000,
+    messages: [{ role: "user", content: reviewPrompt }],
+  });
+
+  const content = response.content[0];
+  if (content.type !== "text") {
+    throw new Error("Unexpected response type from Claude in review pass");
+  }
+
+  let jsonText = content.text.trim();
+  if (jsonText.startsWith("```json")) jsonText = jsonText.slice(7);
+  else if (jsonText.startsWith("```")) jsonText = jsonText.slice(3);
+  if (jsonText.endsWith("```")) jsonText = jsonText.slice(0, -3);
+  jsonText = jsonText.trim();
+
+  const parsed: GeneratedPosts = JSON.parse(jsonText);
+  if (!parsed.posts?.[0]) {
+    console.warn("Review pass returned no post, using original");
+    return post;
+  }
+
+  return parsed.posts[0];
 }
 
 // Data source context for prompts
@@ -652,9 +1032,8 @@ export async function POST(request: NextRequest) {
       `Data source: ${dataSourceType}, weather: ${weather ? "yes" : "no"}, ${existingPosts.length} existing posts`
     );
 
-    // 3. Generate blog posts with Claude
-    const anthropic = new Anthropic();
-    const prompt = buildPrompt({
+    // 3. Build context for multi-pass generation
+    const ctx: DataContext = {
       type: dataSourceType,
       permits,
       energy,
@@ -662,45 +1041,92 @@ export async function POST(request: NextRequest) {
       zoning,
       weather,
       existingPosts,
-    });
+    };
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }],
-    });
+    // Build primary data section and topic guidance (extracted from buildPrompt)
+    let primaryDataSection = "";
+    let topicGuidance = "";
 
-    const content = response.content[0];
-    if (content.type !== "text") {
-      throw new Error("Unexpected response type from Claude");
+    switch (dataSourceType) {
+      case "permits":
+        primaryDataSection =
+          permits.length > 0
+            ? `## This Week's Focus: Recent Chicago Building Permits\n${JSON.stringify(permits.slice(0, 8), null, 2)}`
+            : "No recent permit data available.";
+        topicGuidance = `Write about PERMITS and COSTS. Use the real permit data above to discuss:
+- What specific permit costs tell homeowners about project pricing
+- Permit processing times and what to expect
+- Work types and scope from real permits`;
+        break;
+
+      case "energy":
+        primaryDataSection =
+          energy.length > 0
+            ? `## This Week's Focus: Chicago Energy Benchmarking Data\n${JSON.stringify(energy.slice(0, 10), null, 2)}`
+            : "No energy benchmarking data available.";
+        topicGuidance = `Write about ENERGY EFFICIENCY. Use the benchmarking data to discuss:
+- How building size affects energy costs in Chicago
+- Chicago Energy Rating and what it means for homeowners
+- Energy upgrades that improve ratings (insulation, windows, HVAC)`;
+        break;
+
+      case "landmarks":
+        primaryDataSection =
+          landmarks.length > 0
+            ? `## This Week's Focus: Chicago Landmarks\n${JSON.stringify(landmarks.slice(0, 10), null, 2)}`
+            : "No landmarks data available.";
+        topicGuidance = `Write about HISTORIC RENOVATION. Use the landmarks data to discuss:
+- Renovating in Chicago's landmark districts
+- Permit and approval requirements for historic properties
+- Balancing preservation with modern updates
+- Working with the Chicago Landmarks Commission`;
+        break;
+
+      case "zoning":
+        primaryDataSection =
+          zoning.length > 0
+            ? `## This Week's Focus: Chicago Zoning Districts\nCommon zone classes: ${zoning
+                .slice(0, 15)
+                .map((z) => z.zone_class)
+                .join(", ")}`
+            : "No zoning data available.";
+        topicGuidance = `Write about ZONING and ADUs. Explain zoning classifications and discuss:
+- What RS (residential single-family) vs RM (residential multi-family) means
+- Zoning requirements for ADUs, coach houses, and additions
+- How to check zoning before starting a project
+- Common zoning variances homeowners request`;
+        break;
     }
 
-    // Parse the JSON response (strip markdown code blocks if present)
-    let jsonText = content.text.trim();
-    // Remove markdown code blocks
-    if (jsonText.startsWith("```json")) {
-      jsonText = jsonText.slice(7);
-    } else if (jsonText.startsWith("```")) {
-      jsonText = jsonText.slice(3);
-    }
-    if (jsonText.endsWith("```")) {
-      jsonText = jsonText.slice(0, -3);
-    }
-    jsonText = jsonText.trim();
+    const anthropic = new Anthropic();
 
-    let generated: GeneratedPosts;
-    try {
-      generated = JSON.parse(jsonText);
-    } catch (parseError) {
-      console.error("Failed to parse Claude response. Raw text:", content.text.slice(0, 500));
-      console.error("Cleaned text:", jsonText.slice(0, 500));
-      console.error("Parse error:", parseError);
-      throw new Error("Invalid JSON response from Claude");
+    // ============================================================================
+    // MULTI-PASS GENERATION
+    // ============================================================================
+
+    console.log("=== PASS 1: Generating outline ===");
+    const outline = await generateOutline(anthropic, ctx, topicGuidance, primaryDataSection);
+    console.log(`Outline generated: "${outline.title}" with ${outline.sections.length} sections`);
+
+    console.log("=== PASS 2: Expanding content ===");
+    let post = await expandOutline(anthropic, outline, ctx, primaryDataSection);
+    console.log(`Content expanded: ${post.body?.split(/\s+/).length || 0} words`);
+
+    // Score the content
+    let score = scoreContent(post);
+    console.log(`Initial quality score: ${score.overallScore}/100`);
+    if (score.slopPhrasesFound.length > 0) {
+      console.log(`Slop phrases found: ${score.slopPhrasesFound.join(", ")}`);
     }
 
-    if (!generated.posts || !Array.isArray(generated.posts)) {
-      throw new Error("Invalid response structure - expected posts array");
-    }
+    console.log("=== PASS 3: Quality review ===");
+    post = await reviewAndImprove(anthropic, post, score);
+
+    // Re-score after review
+    const finalScore = scoreContent(post);
+    console.log(`Final quality score: ${finalScore.overallScore}/100`);
+
+    const generated: GeneratedPosts = { posts: [post] };
 
     // 4. Create drafts in Sanity
     const dataSources: string[] = ["Chicago Data Portal"];
@@ -729,6 +1155,9 @@ export async function POST(request: NextRequest) {
       const timestamp = now.toISOString().slice(0, 10); // YYYY-MM-DD
       const slugWithDate = `${slugify(post.title)}-${timestamp}`;
 
+      // Get quality score for this post
+      const postScore = scoreContent(post);
+
       const doc = await sanityWriteClient.create({
         _type: "blogPost",
         title: post.title,
@@ -746,6 +1175,9 @@ export async function POST(request: NextRequest) {
         })),
         dataSources,
         generatedAt: now.toISOString(),
+        // Quality metadata from multi-pass generation
+        qualityScore: postScore.overallScore,
+        wordCount: postScore.wordCount,
       });
 
       createdDocs.push({ id: doc._id, title: post.title });
@@ -758,6 +1190,8 @@ export async function POST(request: NextRequest) {
         excerpt: post.excerpt,
         slug: slugWithDate,
         dataSource: dataSourceLabels[dataSourceType],
+        qualityScore: postScore.overallScore,
+        wordCount: postScore.wordCount,
       });
     }
 
