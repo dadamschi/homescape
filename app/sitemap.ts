@@ -43,11 +43,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/services`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
   ];
 
-  // Dynamic blog posts
+  // Fetch service and blog slugs from Sanity
   try {
-    const blogSlugs = await sanityFetch<string[]>(queries.allBlogSlugs);
+    const [serviceSlugs, blogSlugs] = await Promise.all([
+      sanityFetch<string[]>(queries.allServiceSlugs),
+      sanityFetch<string[]>(queries.allBlogSlugs),
+    ]);
+
+    const servicePages: MetadataRoute.Sitemap = serviceSlugs.map((slug) => ({
+      url: `${baseUrl}/services/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    }));
+
     const blogPages: MetadataRoute.Sitemap = blogSlugs.map((slug) => ({
       url: `${baseUrl}/blog/${slug}`,
       lastModified: new Date(),
@@ -55,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    return [...staticPages, ...blogPages];
+    return [...staticPages, ...servicePages, ...blogPages];
   } catch {
     // If Sanity fetch fails, return static pages only
     return staticPages;

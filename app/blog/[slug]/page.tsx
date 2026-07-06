@@ -2,7 +2,8 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { sanityFetch, urlFor } from "@/lib/sanity";
+import { cache } from "react";
+import { sanityFetch, sanityFetchPreview, urlFor } from "@/lib/sanity";
 import { queries } from "@/lib/queries";
 import type { BlogPost } from "@/lib/types";
 import BlogCTA from "@/components/BlogCTA";
@@ -22,11 +23,28 @@ const defaultColor = { bg: "rgba(107, 155, 28, 0.1)", text: "#6b9b1c" };
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+// Cached fetch to deduplicate between generateMetadata and page
+const getBlogPost = cache(async (slug: string, preview = false): Promise<BlogPost | null> => {
+  // For preview, fetch without the publishedAt filter
+  const query = preview
+    ? `*[_type == "blogPost" && slug.current == $slug][0] {
+        _id, _updatedAt, title, slug, author, publishedAt, excerpt,
+        mainImage, body, categories, serviceType, seo, faq, dataSources
+      }`
+    : queries.blogPostBySlug;
+
+  return sanityFetchPreview<BlogPost | null>(query, { slug }, preview);
+});
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await sanityFetch<BlogPost | null>(queries.blogPostBySlug, { slug });
+  const { preview } = await searchParams;
+  const isPreview = preview === "true";
+
+  const post = await getBlogPost(slug, isPreview);
 
   if (!post) {
     return { title: "Post Not Found | Homescape Construction" };
@@ -49,6 +67,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical: `https://homescapeconstruction.com/blog/${slug}`,
     },
+    // Prevent indexing of preview pages
+    ...(isPreview && { robots: { index: false, follow: false } }),
   };
 }
 
@@ -241,9 +261,12 @@ function renderPortableText(blocks: BlogPost["body"]) {
   });
 }
 
-export default async function BlogPostPage({ params }: PageProps) {
+export default async function BlogPostPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const post = await sanityFetch<BlogPost | null>(queries.blogPostBySlug, { slug });
+  const { preview } = await searchParams;
+  const isPreview = preview === "true";
+
+  const post = await getBlogPost(slug, isPreview);
 
   if (!post) {
     notFound();
@@ -258,290 +281,299 @@ export default async function BlogPostPage({ params }: PageProps) {
     : null;
 
   return (
-    <main
-      style={{
-        maxWidth: "800px",
-        margin: "0 auto",
-        padding: "2rem 1rem 4rem",
-      }}
-    >
-      <article>
-        <header
-          style={{
-            marginBottom: "2rem",
-            paddingBottom: "2rem",
-            borderBottom: "1px solid var(--border, #eee)",
-          }}
-        >
-          <Link
-            href="/blog"
+    <>
+      {isPreview && (
+        <div className="preview-banner">
+          <span>Preview Mode — This is a draft</span>
+        </div>
+      )}
+      <main
+        style={{
+          maxWidth: "800px",
+          margin: "0 auto",
+          padding: isPreview ? "4rem 1rem 4rem" : "2rem 1rem 4rem",
+        }}
+      >
+        <article>
+          <header
             style={{
-              display: "inline-block",
-              fontSize: "0.9rem",
-              color: "#6b9b1c",
-              textDecoration: "none",
-              marginBottom: "1.5rem",
+              marginBottom: "2rem",
+              paddingBottom: "2rem",
+              borderBottom: "1px solid var(--border, #eee)",
             }}
           >
-            &larr; Back to Blog
-          </Link>
+            <Link
+              href="/blog"
+              style={{
+                display: "inline-block",
+                fontSize: "0.9rem",
+                color: "#6b9b1c",
+                textDecoration: "none",
+                marginBottom: "1.5rem",
+              }}
+            >
+              &larr; Back to Blog
+            </Link>
 
-          <h1
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              lineHeight: 1.2,
-              margin: "0 0 1rem 0",
-              color: "var(--text-primary, #1a1a1a)",
-            }}
-          >
-            {post.title}
-          </h1>
+            <h1
+              style={{
+                fontSize: "2.25rem",
+                fontWeight: 700,
+                lineHeight: 1.2,
+                margin: "0 0 1rem 0",
+                color: "var(--text-primary, #1a1a1a)",
+              }}
+            >
+              {post.title}
+            </h1>
 
-          {post.categories && post.categories.length > 0 && (
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-              {post.categories.map((cat) => {
-                const colors = categoryColors[cat] || defaultColor;
-                return (
-                  <span
-                    key={cat}
-                    style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: colors.text,
-                      background: colors.bg,
-                      padding: "0.3rem 0.85rem",
-                      borderRadius: "9999px",
-                    }}
-                  >
-                    {cat}
+            {post.categories && post.categories.length > 0 && (
+              <div
+                style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}
+              >
+                {post.categories.map((cat) => {
+                  const colors = categoryColors[cat] || defaultColor;
+                  return (
+                    <span
+                      key={cat}
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: colors.text,
+                        background: colors.bg,
+                        padding: "0.3rem 0.85rem",
+                        borderRadius: "9999px",
+                      }}
+                    >
+                      {cat}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                alignItems: "center",
+                marginBottom: "1rem",
+                flexWrap: "wrap",
+              }}
+            >
+              {formattedDate && (
+                <time
+                  dateTime={post.publishedAt}
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "var(--text-muted, #999)",
+                  }}
+                >
+                  {formattedDate}
+                </time>
+              )}
+              {post.author && (
+                <>
+                  <span style={{ color: "var(--text-muted, #999)" }}>·</span>
+                  <span style={{ fontSize: "0.9rem", color: "var(--text-muted, #999)" }}>
+                    {post.author}
                   </span>
-                );
-              })}
+                </>
+              )}
             </div>
-          )}
+
+            {post.mainImage?.asset && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "400px",
+                  marginBottom: "1.5rem",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <Image
+                  src={urlFor(post.mainImage).width(800).height(400).url()}
+                  alt={post.mainImage.alt || post.title}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  priority
+                />
+              </div>
+            )}
+
+            {post.excerpt && (
+              <p
+                style={{
+                  fontSize: "1.15rem",
+                  color: "var(--text-secondary, #555)",
+                  lineHeight: 1.6,
+                  margin: 0,
+                }}
+              >
+                {post.excerpt}
+              </p>
+            )}
+          </header>
 
           <div
             style={{
-              display: "flex",
-              gap: "0.5rem",
-              alignItems: "center",
-              marginBottom: "1rem",
-              flexWrap: "wrap",
+              fontSize: "1.05rem",
+              lineHeight: 1.8,
+              color: "var(--text-primary, #333)",
             }}
           >
-            {formattedDate && (
-              <time
-                dateTime={post.publishedAt}
+            {renderPortableText(post.body)}
+          </div>
+
+          {/* CTA Module - rotates copy automatically */}
+          <BlogCTA />
+
+          {post.dataSources && post.dataSources.length > 0 && (
+            <footer
+              style={{
+                marginTop: "3rem",
+                paddingTop: "1.5rem",
+                borderTop: "1px solid var(--border, #eee)",
+              }}
+            >
+              <p
                 style={{
-                  fontSize: "0.9rem",
+                  fontSize: "0.85rem",
                   color: "var(--text-muted, #999)",
                 }}
               >
-                {formattedDate}
-              </time>
-            )}
-            {post.author && (
-              <>
-                <span style={{ color: "var(--text-muted, #999)" }}>·</span>
-                <span style={{ fontSize: "0.9rem", color: "var(--text-muted, #999)" }}>
-                  {post.author}
-                </span>
-              </>
-            )}
-          </div>
-
-          {post.mainImage?.asset && (
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                height: "400px",
-                marginBottom: "1.5rem",
-                borderRadius: "8px",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={urlFor(post.mainImage).width(800).height(400).url()}
-                alt={post.mainImage.alt || post.title}
-                fill
-                style={{ objectFit: "cover" }}
-                priority
-              />
-            </div>
+                <strong>Data sources:</strong> {post.dataSources.join(", ")}
+              </p>
+            </footer>
           )}
+        </article>
 
-          {post.excerpt && (
-            <p
-              style={{
-                fontSize: "1.15rem",
-                color: "var(--text-secondary, #555)",
-                lineHeight: 1.6,
-                margin: 0,
-              }}
-            >
-              {post.excerpt}
-            </p>
-          )}
-        </header>
-
-        <div
-          style={{
-            fontSize: "1.05rem",
-            lineHeight: 1.8,
-            color: "var(--text-primary, #333)",
-          }}
-        >
-          {renderPortableText(post.body)}
-        </div>
-
-        {/* CTA Module - rotates copy automatically */}
-        <BlogCTA />
-
-        {post.dataSources && post.dataSources.length > 0 && (
-          <footer
-            style={{
-              marginTop: "3rem",
-              paddingTop: "1.5rem",
-              borderTop: "1px solid var(--border, #eee)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--text-muted, #999)",
-              }}
-            >
-              <strong>Data sources:</strong> {post.dataSources.join(", ")}
-            </p>
-          </footer>
-        )}
-      </article>
-
-      {/* JSON-LD for BreadcrumbList schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://homescapeconstruction.com",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Blog",
-                item: "https://homescapeconstruction.com/blog",
-              },
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: post.title,
-                item: `https://homescapeconstruction.com/blog/${post.slug.current}`,
-              },
-            ],
-          }),
-        }}
-      />
-
-      {/* JSON-LD for Article schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            mainEntityOfPage: {
-              "@type": "WebPage",
-              "@id": `https://homescapeconstruction.com/blog/${post.slug.current}`,
-            },
-            headline: post.title,
-            description: post.excerpt,
-            datePublished: post.publishedAt,
-            dateModified: post._updatedAt || post.publishedAt,
-            ...(post.mainImage?.asset && {
-              image: urlFor(post.mainImage).width(1200).height(630).url(),
+        {/* JSON-LD for BreadcrumbList schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: "https://homescapeconstruction.com",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Blog",
+                  item: "https://homescapeconstruction.com/blog",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: post.title,
+                  item: `https://homescapeconstruction.com/blog/${post.slug.current}`,
+                },
+              ],
             }),
-            author: post.author
-              ? {
-                  "@type": "Person",
-                  name: post.author.split("/")[0].trim(),
-                  worksFor: {
+          }}
+        />
+
+        {/* JSON-LD for Article schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Article",
+              mainEntityOfPage: {
+                "@type": "WebPage",
+                "@id": `https://homescapeconstruction.com/blog/${post.slug.current}`,
+              },
+              headline: post.title,
+              description: post.excerpt,
+              datePublished: post.publishedAt,
+              dateModified: post._updatedAt || post.publishedAt,
+              ...(post.mainImage?.asset && {
+                image: urlFor(post.mainImage).width(1200).height(630).url(),
+              }),
+              author: post.author
+                ? {
+                    "@type": "Person",
+                    name: post.author.split("/")[0].trim(),
+                    worksFor: {
+                      "@type": "Organization",
+                      name: "Homescape Construction",
+                    },
+                  }
+                : {
                     "@type": "Organization",
                     name: "Homescape Construction",
                   },
-                }
-              : {
-                  "@type": "Organization",
-                  name: "Homescape Construction",
+              publisher: {
+                "@type": "Organization",
+                name: "Homescape Construction",
+                url: "https://homescapeconstruction.com",
+                logo: {
+                  "@type": "ImageObject",
+                  url: "https://homescapeconstruction.com/logo.png",
                 },
-            publisher: {
-              "@type": "Organization",
-              name: "Homescape Construction",
-              url: "https://homescapeconstruction.com",
-              logo: {
-                "@type": "ImageObject",
-                url: "https://homescapeconstruction.com/logo.png",
               },
-            },
-            isPartOf: {
-              "@id": "https://www.homescapeconstruction.com/#website",
-            },
-          }),
-        }}
-      />
-
-      {/* JSON-LD for FAQPage schema (if FAQ content exists) */}
-      {post.faq && post.faq.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: post.faq.map((item) => ({
-                "@type": "Question",
-                name: item.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: item.answer,
-                },
-              })),
+              isPartOf: {
+                "@id": "https://www.homescapeconstruction.com/#website",
+              },
             }),
           }}
         />
-      )}
 
-      {/* JSON-LD for Service schema (only for service-type posts) */}
-      {post.serviceType && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Service",
-              name: `${post.serviceType} in Chicago`,
-              description: post.excerpt,
-              provider: {
-                "@id": "https://www.homescapeconstruction.com/#organization",
-              },
-              areaServed: {
-                "@type": "State",
-                name: "Illinois",
-              },
-              url: `https://www.homescapeconstruction.com/blog/${post.slug.current}`,
-            }),
-          }}
-        />
-      )}
-    </main>
+        {/* JSON-LD for FAQPage schema (if FAQ content exists) */}
+        {post.faq && post.faq.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: post.faq.map((item) => ({
+                  "@type": "Question",
+                  name: item.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: item.answer,
+                  },
+                })),
+              }),
+            }}
+          />
+        )}
+
+        {/* JSON-LD for Service schema (only for service-type posts) */}
+        {post.serviceType && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Service",
+                name: `${post.serviceType} in Chicago`,
+                description: post.excerpt,
+                provider: {
+                  "@id": "https://www.homescapeconstruction.com/#organization",
+                },
+                areaServed: {
+                  "@type": "State",
+                  name: "Illinois",
+                },
+                url: `https://www.homescapeconstruction.com/blog/${post.slug.current}`,
+              }),
+            }}
+          />
+        )}
+      </main>
+    </>
   );
 }

@@ -8,9 +8,11 @@ import ThemeSwitch from "./ThemeSwitch";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
+  // { href: "/services", label: "Services" },
   { href: "/projects", label: "Projects" },
   { href: "/about", label: "About" },
   { href: "/testimonials", label: "Testimonials" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export default function Nav() {
@@ -35,11 +37,7 @@ export default function Nav() {
         <ul className="nav-links">
           {NAV_LINKS.map((l) => (
             <li key={l.href}>
-              <Link
-                href={l.href}
-                className={isActive(l.href) ? "active" : ""}
-                onClick={handleNav}
-              >
+              <Link href={l.href} className={isActive(l.href) ? "active" : ""} onClick={handleNav}>
                 {l.label}
               </Link>
             </li>
@@ -61,11 +59,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/contact"
-            onClick={handleNav}
-            style={{ color: "var(--color-accent)" }}
-          >
+          <Link href="/contact" onClick={handleNav} style={{ color: "var(--color-accent)" }}>
             Contact us!
           </Link>
         </div>

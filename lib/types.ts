@@ -144,6 +144,48 @@ export type BlogServiceType =
   | "ADU & Garage Conversions"
   | "General Contracting";
 
+// Service page types
+export interface ServicePageFAQ {
+  question: string;
+  answer: string;
+}
+
+export interface ServicePageProcess {
+  title: string;
+  description: string;
+}
+
+export interface ServicePageCostRange {
+  low: string;
+  high: string;
+  note: string;
+}
+
+export interface ServicePageSEO {
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export interface ServicePage {
+  _id: string;
+  _type: "servicePage";
+  title: string;
+  slug: { current: string };
+  heroHeadline: string;
+  heroSubheadline?: string;
+  heroImage?: SanityImage;
+  overview?: PortableTextBlock[];
+  process?: ServicePageProcess[];
+  costRange?: ServicePageCostRange;
+  timeline?: string;
+  chicagoConsiderations?: string[];
+  faq?: ServicePageFAQ[];
+  relatedProjects?: Project[];
+  seo?: ServicePageSEO;
+  isPublished: boolean;
+  order: number;
+}
+
 export interface BlogPost {
   _id: string;
   _type: "blogPost";

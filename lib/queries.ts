@@ -80,4 +80,40 @@ export const queries = {
   }`,
 
   allBlogSlugs: `*[_type == "blogPost" && defined(publishedAt)].slug.current`,
+
+  // Service pages
+  servicePages: `*[_type == "servicePage" && isPublished == true] | order(order asc) {
+    _id,
+    title,
+    slug,
+    heroHeadline,
+    heroImage,
+    seo
+  }`,
+
+  servicePageBySlug: `*[_type == "servicePage" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    heroHeadline,
+    heroSubheadline,
+    heroImage,
+    overview,
+    process,
+    costRange,
+    timeline,
+    chicagoConsiderations,
+    faq,
+    relatedProjects[]-> {
+      _id,
+      title,
+      category,
+      image,
+      year
+    },
+    seo,
+    isPublished
+  }`,
+
+  allServiceSlugs: `*[_type == "servicePage" && isPublished == true].slug.current`,
 };
