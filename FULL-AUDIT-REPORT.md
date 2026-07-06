@@ -37,7 +37,7 @@ The site has strong technical foundations (SSR, valid sitemap, comprehensive Loc
 **Impact:** Google treats all pages as duplicates of homepage, preventing organic visibility
 
 **Evidence:**
-
+ This is for push
 ```html
 <!-- /projects page -->
 <link rel="canonical" href="https://homescapeconstruction.com" />
