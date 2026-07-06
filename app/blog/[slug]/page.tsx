@@ -8,6 +8,9 @@ import { queries } from "@/lib/queries";
 import type { BlogPost } from "@/lib/types";
 import BlogCTA from "@/components/BlogCTA";
 
+// Force dynamic rendering to support ?preview=true
+export const dynamic = "force-dynamic";
+
 // Category color mapping for consistent pill styling
 const categoryColors: Record<string, { bg: string; text: string }> = {
   Remodeling: { bg: "rgba(107, 155, 28, 0.15)", text: "#5a8a15" },

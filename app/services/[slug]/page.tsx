@@ -8,6 +8,9 @@ import { queries } from "@/lib/queries";
 import type { ServicePage, PortableTextBlock } from "@/lib/types";
 import ContactForm from "@/components/ContactForm";
 
+// Force dynamic rendering to support ?preview=true
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ preview?: string }>;
