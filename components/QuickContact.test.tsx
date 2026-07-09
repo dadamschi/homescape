@@ -5,6 +5,15 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 // Mock fetch
 global.fetch = vi.fn();
 
+// Mock SimpleCaptcha to auto-validate
+vi.mock("./SimpleCaptcha", () => ({
+  default: ({ onValidChange }: { onValidChange: (valid: boolean, honeypot: boolean) => void }) => {
+    // Call onValidChange immediately to simulate valid captcha
+    onValidChange(true, false);
+    return <div data-testid="mock-captcha">Mocked Captcha</div>;
+  },
+}));
+
 import QuickContact from "./QuickContact";
 
 describe("QuickContact", () => {

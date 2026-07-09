@@ -5,6 +5,15 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 // Mock fetch
 global.fetch = vi.fn();
 
+// Mock SimpleCaptcha to auto-validate
+vi.mock("./SimpleCaptcha", () => ({
+  default: ({ onValidChange }: { onValidChange: (valid: boolean, honeypot: boolean) => void }) => {
+    // Call onValidChange immediately to simulate valid captcha
+    onValidChange(true, false);
+    return <div data-testid="mock-captcha">Mocked Captcha</div>;
+  },
+}));
+
 import ContactForm from "./ContactForm";
 
 describe("ContactForm", () => {
@@ -62,9 +71,7 @@ describe("ContactForm", () => {
     const user = userEvent.setup();
 
     // Make fetch hang
-    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
-      () => new Promise(() => {})
-    );
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(() => new Promise(() => {}));
 
     render(<ContactForm />);
 
