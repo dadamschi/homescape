@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Icons from "./Icons";
+import SimpleCaptcha from "./SimpleCaptcha";
 import type { LeadFormData } from "@/lib/types";
 
 const EMPTY: LeadFormData = { name: "", email: "", phone: "", service: "", message: "" };
@@ -26,9 +27,18 @@ export default function ContactForm() {
   const [form, setForm] = useState<LeadFormData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [captchaValid, setCaptchaValid] = useState(false);
+  const [isBot, setIsBot] = useState(false);
+
+  const handleCaptchaChange = useCallback((isValid: boolean, honeypotTriggered: boolean) => {
+    setCaptchaValid(isValid);
+    setIsBot(honeypotTriggered);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaValid || isBot) return;
+
     setSubmitting(true);
     try {
       await submitLead(form);
@@ -41,9 +51,9 @@ export default function ContactForm() {
     }
   };
 
-  const updateField = (field: keyof LeadFormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const updateField =
+    (field: keyof LeadFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   if (success) {
     return (
@@ -57,7 +67,9 @@ export default function ContactForm() {
     <form className="contact-form" onSubmit={handleSubmit}>
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="contact-name" className="form-label">Name</label>
+          <label htmlFor="contact-name" className="form-label">
+            Name
+          </label>
           <input
             id="contact-name"
             className="form-input"
@@ -68,7 +80,9 @@ export default function ContactForm() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="contact-email" className="form-label">Email</label>
+          <label htmlFor="contact-email" className="form-label">
+            Email
+          </label>
           <input
             id="contact-email"
             className="form-input"
@@ -81,7 +95,9 @@ export default function ContactForm() {
       </div>
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="contact-phone" className="form-label">Phone</label>
+          <label htmlFor="contact-phone" className="form-label">
+            Phone
+          </label>
           <input
             id="contact-phone"
             className="form-input"
@@ -92,7 +108,9 @@ export default function ContactForm() {
         </div>
       </div>
       <div className="form-group">
-        <label htmlFor="contact-message" className="form-label">Message</label>
+        <label htmlFor="contact-message" className="form-label">
+          Message
+        </label>
         <textarea
           id="contact-message"
           className="form-textarea"
@@ -102,7 +120,8 @@ export default function ContactForm() {
           required
         />
       </div>
-      <button className="btn btn-primary" type="submit" disabled={submitting}>
+      <SimpleCaptcha onValidChange={handleCaptchaChange} />
+      <button className="btn btn-primary" type="submit" disabled={submitting || !captchaValid}>
         {submitting ? "Sending..." : "Send Inquiry"} {!submitting && Icons.arrow}
       </button>
     </form>

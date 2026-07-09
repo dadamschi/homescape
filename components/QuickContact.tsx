@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Icons from "./Icons";
+import SimpleCaptcha from "./SimpleCaptcha";
 import type { LeadFormData } from "@/lib/types";
 
 const EMPTY: LeadFormData = { name: "", email: "", phone: "", service: "", message: "" };
@@ -26,6 +27,13 @@ export default function QuickContact() {
   const [form, setForm] = useState<LeadFormData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [captchaValid, setCaptchaValid] = useState(false);
+  const [isBot, setIsBot] = useState(false);
+
+  const handleCaptchaChange = useCallback((isValid: boolean, honeypotTriggered: boolean) => {
+    setCaptchaValid(isValid);
+    setIsBot(honeypotTriggered);
+  }, []);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -35,12 +43,14 @@ export default function QuickContact() {
     };
   }, [open]);
 
-  const update = (field: keyof LeadFormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const update =
+    (field: keyof LeadFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaValid || isBot) return;
+
     setSubmitting(true);
     try {
       await submitLead({ ...form, source: "Quick Contact Widget" });
@@ -87,7 +97,9 @@ export default function QuickContact() {
         ) : (
           <form className="qc-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="qc-name" className="form-label">Name</label>
+              <label htmlFor="qc-name" className="form-label">
+                Name
+              </label>
               <input
                 id="qc-name"
                 className="form-input"
@@ -99,7 +111,9 @@ export default function QuickContact() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="qc-email" className="form-label">Email</label>
+              <label htmlFor="qc-email" className="form-label">
+                Email
+              </label>
               <input
                 id="qc-email"
                 className="form-input"
@@ -111,7 +125,9 @@ export default function QuickContact() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="qc-phone" className="form-label">Phone</label>
+              <label htmlFor="qc-phone" className="form-label">
+                Phone
+              </label>
               <input
                 id="qc-phone"
                 className="form-input"
@@ -122,7 +138,9 @@ export default function QuickContact() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="qc-message" className="form-label">Message</label>
+              <label htmlFor="qc-message" className="form-label">
+                Message
+              </label>
               <textarea
                 id="qc-message"
                 className="form-textarea"
@@ -132,10 +150,11 @@ export default function QuickContact() {
                 style={{ minHeight: "80px" }}
               />
             </div>
+            <SimpleCaptcha onValidChange={handleCaptchaChange} compact />
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !captchaValid}
               style={{ width: "100%" }}
             >
               {submitting ? "Sending…" : "Send Inquiry"} {!submitting && Icons.arrow}
