@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { urlFor } from "@/lib/sanity";
 import type { HeroContent, SanityImage } from "@/lib/types";
 import Icons from "./Icons";
@@ -18,14 +19,24 @@ export default function Hero({ hero }: HeroProps) {
   if (!hero) return null;
 
   const heroImage = getRandomHeroImage(hero.heroImages || []);
-
-  const bgStyle = heroImage
-    ? { backgroundImage: `url(${urlFor(heroImage).width(1920).quality(80).auto("format").url()})` }
-    : undefined;
+  const heroImageUrl = heroImage
+    ? urlFor(heroImage).width(1920).quality(80).auto("format").url()
+    : null;
 
   return (
     <section className="hero">
-      <div className="hero-bg" style={bgStyle} />
+      <div className="hero-bg">
+        {heroImageUrl && (
+          <Image
+            src={heroImageUrl}
+            alt={heroImage?.alt || "Chicago home renovation by Homescape Construction"}
+            fill
+            priority
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
+        )}
+      </div>
       <div className="hero-content">
         <h1 className="animate-fade-up animate-delay-1">{hero.headline}</h1>
         <p className="animate-fade-up animate-delay-2">{hero.story}</p>

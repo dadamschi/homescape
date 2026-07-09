@@ -7,13 +7,17 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
       },
-      // AI Crawlers - Allow for visibility
+      // AI Search Crawlers - Allow for visibility in AI search results
       {
         userAgent: "GPTBot",
         allow: "/",
       },
       {
         userAgent: "ChatGPT-User",
+        allow: "/",
+      },
+      {
+        userAgent: "OAI-SearchBot",
         allow: "/",
       },
       {
@@ -25,16 +29,44 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
       {
-        userAgent: "OAI-SearchBot",
+        userAgent: "Applebot",
         allow: "/",
       },
-      // Block training crawlers
+      // Block AI training crawlers (allow search, block training)
       {
         userAgent: "CCBot",
         disallow: "/",
       },
       {
         userAgent: "anthropic-ai",
+        disallow: "/",
+      },
+      {
+        userAgent: "Google-Extended",
+        disallow: "/",
+      },
+      {
+        userAgent: "Applebot-Extended",
+        disallow: "/",
+      },
+      {
+        userAgent: "Bytespider",
+        disallow: "/",
+      },
+      {
+        userAgent: "FacebookBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "Amazonbot",
+        disallow: "/",
+      },
+      {
+        userAgent: "cohere-ai",
+        disallow: "/",
+      },
+      {
+        userAgent: "Omgilibot",
         disallow: "/",
       },
     ],

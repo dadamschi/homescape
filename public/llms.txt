@@ -1,34 +1,80 @@
 # Homescape Construction Inc.
-> Chicago-based residential and commercial construction company serving the greater Chicago area since 2012.
 
-## About
-Homescape Construction Inc. is a full-service construction company specializing in residential remodels, custom home builds, and commercial construction. Founded in 2012, we have completed over 200 projects with a 98% client satisfaction rate.
+> Licensed Chicago general contractor specializing in residential remodeling and custom home building since 2012. Owner-operated with 200+ completed projects and 98% client satisfaction.
+
+## Company Overview
+
+Homescape Construction Inc. is a full-service residential construction company based in Chicago, Illinois. Founded in 2012, Homescape has completed over 200 projects including kitchen remodels, bathroom renovations, basement finishing, home additions, ADU construction, and custom home builds. The company maintains a 98% client satisfaction rate and a 4.9-star rating across 200+ reviews. Homescape is a licensed general contractor, fully insured and bonded, serving Chicago and surrounding suburbs.
 
 ## Services
-- Residential remodeling (kitchens, bathrooms, whole-home)
-- Custom home construction
-- Commercial tenant improvements
-- Design-build services
+
+- [Kitchen Remodeling](https://homescapeconstruction.com/blog): Full kitchen renovations including cabinetry, countertops, flooring, lighting, and plumbing. Average Chicago kitchen remodel: $35,000-$75,000.
+- [Bathroom Remodeling](https://homescapeconstruction.com/blog): Custom tile work, shower and tub installation, vanity design, and accessibility upgrades. Average cost: $15,000-$40,000.
+- [Basement Finishing](https://homescapeconstruction.com/blog): Full basement build-outs including framing, electrical, plumbing, drywall, and flooring. Chicago basement finishing: $25,000-$60,000.
+- [Home Additions](https://homescapeconstruction.com/blog): Room additions, second-story additions, and structural expansions.
+- [ADU Construction](https://homescapeconstruction.com/blog): Accessory dwelling unit construction and garage conversions compliant with Chicago ADU ordinance (effective 2021).
+- [Custom Home Building](https://homescapeconstruction.com/blog): New construction and tear-down-and-rebuild projects across Chicago and suburbs.
 
 ## Pages
-- [Home](/): Overview and featured projects
-- [Projects](/#projects): Portfolio of completed construction work
-- [About](/#about): Company history, values, and credentials
-- [Testimonials](/#testimonials): Client reviews and project feedback
-- [Contact](/#contact): Request a consultation
+
+- [Home](https://homescapeconstruction.com): Company overview and featured projects
+- [Projects](https://homescapeconstruction.com/projects): Portfolio of completed residential construction work
+- [About](https://homescapeconstruction.com/about): Company history, values, and credentials
+- [Testimonials](https://homescapeconstruction.com/testimonials): Client reviews and project feedback
+- [Contact](https://homescapeconstruction.com/contact): Request a free consultation
+- [Blog](https://homescapeconstruction.com/blog): Chicago construction guides, permit information, and remodeling advice
 
 ## Service Area
-Chicago, Illinois and surrounding suburbs including:
-- Lincoln Park
-- Wicker Park
-- Lakeview
-- North Shore
+
+Chicago, Illinois and surrounding suburbs:
+- North Side: Lincoln Park, Lakeview, Lincoln Square, Andersonville, Edgewater, Uptown, Ravenswood Manor, Roscoe Village, Buena Park
+- Northwest Side: Logan Square, Bucktown, Wicker Park, Ukrainian Village, Humboldt Park, Palmer Square, Avondale, Irving Park, Portage Park
+- West Side: West Town, West Loop
+- Near North: New Eastside
+- Suburbs: Oak Park, Evanston, Skokie, Park Ridge, Niles, Riverside, North Riverside, Berwyn
 
 ## Key Facts
+
 - Founded: 2012
-- Location: Chicago, Illinois
+- Location: Chicago, Illinois (ZIP 60614)
 - Projects Completed: 200+
 - Client Satisfaction: 98%
+- Average Rating: 4.9 stars (200+ reviews)
+- Credentials: Licensed General Contractor, Fully Insured & Bonded
+- Business Type: Owner-operated residential construction
+
+## Chicago Construction Costs (2024-2025)
+
+| Project Type | Typical Range |
+|-------------|---------------|
+| Kitchen Remodel | $35,000 - $75,000 |
+| Bathroom Remodel | $15,000 - $40,000 |
+| Basement Finishing | $25,000 - $60,000 |
+| Home Addition | $150 - $300 per sq ft |
+| ADU/Coach House | $150,000 - $350,000 |
+
+## Frequently Asked Questions
+
+**What is the average cost of a kitchen remodel in Chicago?**
+A mid-range kitchen remodel in Chicago typically costs $35,000 to $75,000, depending on scope. This includes cabinetry, countertops, appliances, flooring, and labor. High-end kitchens with custom cabinets and premium finishes can exceed $100,000.
+
+**Do I need a permit for remodeling in Chicago?**
+Yes, most remodeling projects in Chicago require permits from the Chicago Department of Buildings. This includes kitchen and bathroom remodels involving plumbing or electrical work, structural changes, basement finishing, and additions. Homescape handles all permit applications and inspections.
+
+**How long does a typical kitchen remodel take?**
+A full kitchen remodel in Chicago typically takes 8-12 weeks from demolition to completion. Timeline factors include permit approval (2-4 weeks), material lead times, and project complexity. Homescape provides detailed project schedules before work begins.
+
+**What Chicago neighborhoods does Homescape serve?**
+Homescape Construction serves Chicago's North Side, Northwest Side, West Side, and Near North neighborhoods, plus nearby suburbs including Oak Park, Evanston, and Skokie. Primary service areas include Lincoln Park, Lakeview, Logan Square, Wicker Park, and Bucktown.
 
 ## Contact
-Website: https://homescapeconstruction.com
+
+- Website: https://homescapeconstruction.com
+- Contact Form: https://homescapeconstruction.com/contact
+- Email: info@homescapeconstruction.com
+
+## Social & Reviews
+
+- Facebook: https://www.facebook.com/p/Homescape-Construction-Inc-100057514995369/
+- Houzz: https://www.houzz.com/professionals/general-contractors/homescape-construction-inc-pfvwus-pf~916826852
+- BBB: https://www.bbb.org/us/il/chicago/profile/construction-services/homescape-construction-inc-0654-90023681
